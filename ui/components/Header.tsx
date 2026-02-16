@@ -3,7 +3,7 @@
 import { useStore } from '@/lib/store';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, Globe, Swords, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const phases = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -15,7 +15,7 @@ const priorities = [
 ] as const;
 
 export function Header() {
-  const { priorityFilter, setPriorityFilter, searchQuery, setSearchQuery } = useStore();
+  const { priorityFilter, setPriorityFilter, searchQuery, setSearchQuery, setSidebarOpen, setSidebarTab } = useStore();
 
   const scrollToPhase = (phaseNum: number) => {
     // Find the phase node element and scroll to it using React Flow's fitView
@@ -24,6 +24,11 @@ export function Header() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     }
+  };
+
+  const openPanel = (tab: 'ecosystem' | 'competitors' | 'privacy') => {
+    setSidebarTab(tab);
+    setSidebarOpen(true);
   };
 
   return (
@@ -46,6 +51,41 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Panel Quick Access Buttons */}
+        <div className="flex items-center gap-1 border-r pr-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+            onClick={() => openPanel('ecosystem')}
+            title="Google Ecosystem"
+          >
+            <Globe className="w-4 h-4 mr-1" />
+            Ecosystem
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-gray-600 hover:text-orange-600 hover:bg-orange-50"
+            onClick={() => openPanel('competitors')}
+            title="Competitors"
+          >
+            <Swords className="w-4 h-4 mr-1" />
+            Competitors
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+            onClick={() => openPanel('privacy')}
+            title="Privacy & Consent"
+          >
+            <Shield className="w-4 h-4 mr-1" />
+            Privacy
+          </Button>
+        </div>
+
+        {/* Priority Filters */}
         <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
           {priorities.map((p) => (
             <button
@@ -65,6 +105,7 @@ export function Header() {
           ))}
         </div>
 
+        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
