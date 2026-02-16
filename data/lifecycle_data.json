@@ -3412,6 +3412,862 @@
           "tools": ["Browser DevTools Console", "Browser DevTools Network tab", "Security Headers (securityheaders.com)", "CSP Evaluator", "Report-URI"]
         }
       ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Conversion Tracking",
+      "phaseNumber": 5,
+      "priority": "must_know_cold",
+      "category": "data_pipelines",
+      "funnelStage": "Action",
+      "summary": "The complete conversion tracking ecosystem from tag implementation through attribution, including GCLID mechanics, GTM architecture, Enhanced Conversions, Offline Conversion Import, and Consent Mode - the foundation of all Google Ads optimization",
+      "adsContext": "Conversion tracking is THE foundation of performance advertising. Without accurate conversion data, Smart Bidding cannot optimize, ROAS cannot be measured, and advertisers are flying blind. TSCs spend significant time troubleshooting why conversions aren't tracking, why attribution is off, and how to implement privacy-compliant measurement.",
+      "dataFlowIn": "User actions on website/app, GCLID from click, first-party customer data (email, phone), offline CRM data, consent signals",
+      "dataFlowOut": "Conversion data attributed to campaigns/keywords, Smart Bidding signals, ROAS calculations, audience data for remarketing",
+      "children": [
+        {
+          "id": "p5-1",
+          "name": "What Conversion Tracking Is",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "fundamentals",
+          "definition": "The process of measuring and attributing user actions (conversions) back to specific ad interactions, enabling advertisers to understand which ads drive valuable outcomes and allowing Google's algorithms to optimize for those outcomes.",
+          "adsContext": "Conversion tracking is non-negotiable for optimization. Without it, Smart Bidding has no signal to optimize toward, ROAS is unmeasurable, and advertisers cannot distinguish profitable campaigns from money pits. It transforms Google Ads from a 'spray and pray' channel into a precision performance machine.",
+          "tscRelevance": "TSCs must explain why conversion tracking matters, help clients identify what to track, and troubleshoot when conversions aren't recording. This is fundamental to every performance conversation.",
+          "keyDetails": [
+            "Conversion: Any valuable user action - purchase, lead form submission, signup, phone call, app install, page view, etc.",
+            "Conversion value: Monetary or weighted value assigned to each conversion for ROAS calculations",
+            "Conversion window: Time period after ad interaction during which a conversion can be attributed (click-through: 1-90 days, view-through: 1-30 days)",
+            "Click-through conversion: User clicked ad, then converted within the conversion window",
+            "View-through conversion: User saw ad (impression) but didn't click, then converted later - measures brand impact",
+            "Conversion rate: Conversions / Clicks - key efficiency metric, typically 2-5% for lead gen, 1-3% for e-commerce",
+            "Primary vs Secondary conversions: Primary conversions are used for bidding optimization; secondary are tracked but not used for bid signals",
+            "Conversion counting: One (unique, good for leads) vs Every (all instances, good for purchases)"
+          ],
+          "interviewQuestions": [
+            "Why is conversion tracking non-negotiable for Smart Bidding campaigns?",
+            "A client asks whether they should count conversions as 'One' or 'Every'. How do you advise them for a lead generation vs e-commerce business?",
+            "Explain the difference between click-through and view-through conversions and when each is valuable."
+          ],
+          "sqlConnection": "Conversion data joins to click data via GCLID, enabling attribution analysis and ROAS calculations across campaigns, ad groups, and keywords.",
+          "troubleshooting": {
+            "symptoms": [
+              "Smart Bidding performing poorly",
+              "No conversion data in reports",
+              "ROAS showing as zero or null",
+              "Conversion rate seems impossibly low"
+            ],
+            "diagnosticQuestions": [
+              "Is conversion tracking implemented correctly?",
+              "Are conversions marked as Primary or Secondary?",
+              "What is the conversion window setting?",
+              "Is the conversion action active and not removed?"
+            ],
+            "causes": [
+              {
+                "issue": "No conversion tracking implemented",
+                "probability": "high",
+                "resolution": "Implement conversion tracking via Google Ads tag, GTM, or GA4 import",
+                "verification": "Check Conversions section in Google Ads; use Tag Assistant to verify tags"
+              },
+              {
+                "issue": "Conversion action set to Secondary instead of Primary",
+                "probability": "medium",
+                "resolution": "Edit conversion action and set 'Include in Conversions' to Yes for bid optimization",
+                "verification": "Check 'Include in Conversions' column in conversion actions list"
+              },
+              {
+                "issue": "Conversion window too short for sales cycle",
+                "probability": "medium",
+                "resolution": "Extend click-through conversion window to match typical customer journey (up to 90 days)",
+                "verification": "Analyze time-to-conversion reports; adjust window to capture majority of conversions"
+              }
+            ]
+          },
+          "tools": ["Google Ads Conversions", "Google Tag Assistant", "GA4 Conversions", "Conversion Lag Report"]
+        },
+        {
+          "id": "p5-2",
+          "name": "The GCLID Bridge",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "tracking_mechanism",
+          "definition": "The Google Click Identifier (GCLID) is the unique parameter appended to landing page URLs when auto-tagging is enabled, serving as the bridge between ad clicks and conversions by storing click information in a first-party cookie that conversion tags read to attribute actions back to specific clicks.",
+          "adsContext": "GCLID is THE mechanism that enables conversion attribution. Without GCLID, Google Ads cannot know which click led to which conversion. This is fundamental to how Smart Bidding learns which users convert and at what value. Understanding the GCLID flow is essential for diagnosing 90% of conversion tracking issues.",
+          "tscRelevance": "This is MUST KNOW COLD. TSCs trace GCLID flow when troubleshooting attribution: Is GCLID in the URL? Is it being stored in the cookie? Is the conversion tag reading the cookie? Breaking down the GCLID bridge is core TSC diagnostic work.",
+          "keyDetails": [
+            "GCLID format: URL parameter ?gclid=<base64_encoded_string> - typically 40-100 characters",
+            "Auto-tagging: Must be enabled in Google Ads account settings (enabled by default) - appends GCLID to destination URLs",
+            "_gcl_aw cookie: First-party cookie storing GCLID value, set by Google's conversion linker tag or gtag.js",
+            "_gcl_aw format: 'GCL.<domain_hash>.<timestamp>.<gclid_value>' - stores click attribution data",
+            "_gcl_aw expiration: 90 days by default - matches maximum click-through conversion window",
+            "Cookie read flow: Conversion tag fires → reads _gcl_aw cookie → extracts GCLID → sends to Google Ads with conversion data",
+            "Attribution chain: User clicks ad → GCLID appended → Lands on page → GCLID stored in _gcl_aw → User converts → Tag reads cookie → Conversion attributed to original click",
+            "Cross-device limitation: GCLID is device-specific (cookie-based), but signed-in users can be matched cross-device via Enhanced Conversions"
+          ],
+          "interviewQuestions": [
+            "Walk me through the complete GCLID flow from ad click to conversion attribution.",
+            "A client's conversions suddenly dropped to zero but they're still getting clicks. What's the first thing you check related to GCLID?",
+            "Why is the _gcl_aw cookie set as a first-party cookie rather than a third-party cookie?"
+          ],
+          "sqlConnection": "GCLID is the join key between click data and conversion data in BigQuery exports. Without GCLID, click-to-conversion joins fail.",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversions not attributing to clicks",
+              "Zero conversions despite conversions happening",
+              "GCLID not appearing in URLs",
+              "Cross-domain tracking broken"
+            ],
+            "diagnosticQuestions": [
+              "Is auto-tagging enabled in account settings?",
+              "Is GCLID appearing in landing page URLs when clicking ads?",
+              "Is the _gcl_aw cookie being set in the browser?",
+              "Are there redirects or URL rewrites stripping the GCLID parameter?"
+            ],
+            "causes": [
+              {
+                "issue": "Auto-tagging disabled in Google Ads",
+                "probability": "high",
+                "resolution": "Enable auto-tagging: Account Settings > Auto-tagging > Tag the URL that people click through from my ad",
+                "verification": "Click an ad in Ad Preview tool, check if ?gclid= appears in landing page URL"
+              },
+              {
+                "issue": "Server-side redirects stripping GCLID parameter",
+                "probability": "high",
+                "resolution": "Configure server/CMS to pass through all query parameters during redirects (301, 302)",
+                "verification": "Test redirect chain with redirect-checker.org; verify GCLID preserved through all hops"
+              },
+              {
+                "issue": "_gcl_aw cookie not being set (missing conversion linker)",
+                "probability": "high",
+                "resolution": "Add Conversion Linker tag in GTM (fires on all pages) or ensure gtag.js is loading on all pages",
+                "verification": "Check browser cookies for _gcl_aw; verify Conversion Linker tag fires in GTM Preview"
+              },
+              {
+                "issue": "CMS or JavaScript framework removing URL parameters",
+                "probability": "medium",
+                "resolution": "Configure SPA/CMS to preserve query parameters; check client-side routing logic",
+                "verification": "Navigate through site after clicking ad; verify GCLID remains in URL or is stored in cookie"
+              },
+              {
+                "issue": "Cookie consent blocking _gcl_aw cookie creation",
+                "probability": "medium",
+                "resolution": "Implement Consent Mode; ensure ad_storage consent before setting cookies",
+                "verification": "Check Consent Mode settings; verify consent banner behavior"
+              }
+            ]
+          },
+          "tools": ["Ad Preview and Diagnosis", "Browser DevTools (Application > Cookies)", "GTM Preview Mode", "Tag Assistant", "Redirect Checker"]
+        },
+        {
+          "id": "p5-3",
+          "name": "Google Tag (gtag.js)",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "implementation",
+          "definition": "Google's unified JavaScript tagging library that enables conversion tracking, remarketing, and analytics across Google products through a single, asynchronous script that communicates with Google Ads, GA4, and other Google services.",
+          "adsContext": "gtag.js is the direct implementation method for Google Ads conversion tracking. While GTM is preferred for flexibility, many sites use gtag.js directly. Understanding both the config command (initializes tag) and event command (tracks conversions) is essential for troubleshooting.",
+          "tscRelevance": "TSCs must read and debug gtag.js implementations, understand the command syntax, and diagnose when events aren't firing. Many support tickets involve misconfigured gtag.js calls.",
+          "keyDetails": [
+            "Global site tag: <script async src='https://www.googletagmanager.com/gtag/js?id=AW-XXXXXX'></script> - loads the library asynchronously",
+            "gtag() function: Universal command interface - gtag('config', ...), gtag('event', ...), gtag('set', ...)",
+            "Config command: gtag('config', 'AW-CONVERSION_ID') - initializes the tag, sets default parameters",
+            "Event command: gtag('event', 'conversion', {'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL', 'value': 100, 'currency': 'USD'})",
+            "Conversion ID: Account-level identifier (AW-XXXXXXXXXX) - same for all conversions in account",
+            "Conversion Label: Unique identifier for each conversion action - differentiates purchase vs lead vs signup",
+            "Async loading: Script loads without blocking page render - critical for page speed",
+            "Multiple destinations: Single gtag.js can send to multiple Google products (Ads, GA4, Floodlight)"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between the gtag config command and the gtag event command.",
+            "A client shows you their conversion tag code and asks why it's not tracking. What do you look for?",
+            "Why is gtag.js loaded with the async attribute and what happens if you remove it?"
+          ],
+          "sqlConnection": "gtag.js sends conversion data that populates the conversions table, joined to clicks via GCLID for attribution reporting.",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversion tag not firing",
+              "gtag is not defined error",
+              "Duplicate conversions being recorded",
+              "Conversion value not being captured"
+            ],
+            "diagnosticQuestions": [
+              "Is the gtag.js library loading successfully?",
+              "Is gtag('config', ...) being called?",
+              "Is the event command firing on the correct page/action?",
+              "Are Conversion ID and Label correct?"
+            ],
+            "causes": [
+              {
+                "issue": "gtag.js library not loading (network/CSP block)",
+                "probability": "high",
+                "resolution": "Check CSP headers for googletagmanager.com; verify script tag is in page source",
+                "verification": "Browser Network tab - filter by 'gtag'; check console for CSP errors"
+              },
+              {
+                "issue": "Config command missing or incorrect",
+                "probability": "high",
+                "resolution": "Ensure gtag('config', 'AW-XXXXXX') is called after library loads",
+                "verification": "Check page source for config call; verify Conversion ID matches account"
+              },
+              {
+                "issue": "Event command not firing on conversion action",
+                "probability": "high",
+                "resolution": "Add gtag('event', 'conversion', {...}) call on thank you page or form submit",
+                "verification": "Use Tag Assistant or Network tab to verify conversion event sent"
+              },
+              {
+                "issue": "Wrong Conversion ID or Label",
+                "probability": "medium",
+                "resolution": "Copy exact Conversion ID and Label from Google Ads conversion action setup",
+                "verification": "Compare code values against Google Ads > Conversions > Tag setup"
+              },
+              {
+                "issue": "Tag firing multiple times (duplicate conversions)",
+                "probability": "medium",
+                "resolution": "Add logic to prevent duplicate fires; use transaction ID to dedupe",
+                "verification": "Check conversion counts vs actual transactions; implement transaction_id"
+              }
+            ]
+          },
+          "tools": ["Browser DevTools Console/Network", "Tag Assistant", "Google Ads Tag Setup", "Conversion Debugger"]
+        },
+        {
+          "id": "p5-4",
+          "name": "GTM Architecture",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "tag_management",
+          "definition": "Google Tag Manager is a tag management system that enables marketers to deploy and manage tracking tags without code changes, using a container that houses Tags (what to track), Triggers (when to fire), Variables (dynamic values), and the dataLayer (event/data communication layer).",
+          "adsContext": "GTM is the recommended implementation method for Google Ads conversion tracking at scale. It provides version control, testing via Preview mode, and non-developer deployment. TSCs troubleshoot GTM configurations daily - understanding the Tag → Trigger → Variable → dataLayer relationship is essential.",
+          "tscRelevance": "GTM is CRITICAL for TSCs. Most enterprise implementations use GTM. Understanding containers, the dataLayer, Preview mode debugging, and how Tags, Triggers, and Variables interact is essential for diagnosing why conversions aren't tracking.",
+          "keyDetails": [
+            "Container: GTM-XXXXXX identifier - the 'bucket' holding all tags, triggers, and variables for a site",
+            "Container snippet: Two parts - <script> in <head> and <noscript> after <body> tag",
+            "Tags: What gets executed - Google Ads Conversion, GA4 Event, Custom HTML, etc.",
+            "Triggers: When tags fire - Page View, Click, Form Submit, Custom Event, Timer, etc.",
+            "Variables: Dynamic values used in tags/triggers - Click URL, Page URL, dataLayer variables, constants",
+            "dataLayer: JavaScript array that passes data to GTM - window.dataLayer.push({'event': 'purchase', 'value': 99.99})",
+            "Built-in variables: Pre-configured variables like Page URL, Click Text, Form ID that GTM can access automatically",
+            "Custom variables: User-defined variables reading from dataLayer, DOM, cookies, or JavaScript",
+            "Preview mode: Testing environment showing which tags fire, what triggers activated, and variable values in real-time",
+            "Version control: Every publish creates a version; can rollback to previous versions if issues arise",
+            "Workspaces: Parallel development environments for team collaboration without conflicts"
+          ],
+          "interviewQuestions": [
+            "Explain the relationship between Tags, Triggers, and Variables in GTM.",
+            "What is the dataLayer and why is it important for GTM implementations?",
+            "Walk me through how you would debug a conversion tag that isn't firing using GTM Preview mode.",
+            "A client's conversion tag is firing on every page instead of just the thank you page. What went wrong?"
+          ],
+          "sqlConnection": "GTM sends data that populates conversion tables; dataLayer values like transaction_id and value become fields in the data warehouse for analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "GTM container not loading",
+              "Conversion tag not firing",
+              "Tag firing on wrong pages",
+              "Variable values undefined",
+              "Preview mode not connecting"
+            ],
+            "diagnosticQuestions": [
+              "Is the GTM container snippet installed correctly?",
+              "Is the tag associated with the correct trigger?",
+              "Is the trigger condition evaluating as expected?",
+              "Are required variables populated with correct values?",
+              "Is the dataLayer.push() happening before GTM loads?"
+            ],
+            "causes": [
+              {
+                "issue": "GTM container snippet missing or incorrect",
+                "probability": "high",
+                "resolution": "Install both parts of snippet: <script> in <head>, <noscript> after opening <body>",
+                "verification": "View page source; search for GTM-XXXXXX; verify both snippets present"
+              },
+              {
+                "issue": "Trigger too broad (fires everywhere) or too narrow (never fires)",
+                "probability": "high",
+                "resolution": "Refine trigger conditions - use Page URL, Click, or Custom Event triggers with specific conditions",
+                "verification": "Use Preview mode to see which triggers fire on target pages"
+              },
+              {
+                "issue": "dataLayer.push() called after GTM loads (timing issue)",
+                "probability": "high",
+                "resolution": "Push dataLayer values before GTM snippet loads, or use Event trigger that waits for the push",
+                "verification": "Check dataLayer array in console; verify event appears; use DOM Ready or Window Loaded triggers"
+              },
+              {
+                "issue": "Variable referencing wrong dataLayer key",
+                "probability": "medium",
+                "resolution": "Verify variable name matches exact dataLayer key (case-sensitive)",
+                "verification": "Check dataLayer in console; compare key names to GTM variable configuration"
+              },
+              {
+                "issue": "Preview mode blocked by browser extensions or CSP",
+                "probability": "medium",
+                "resolution": "Disable ad blockers; check CSP for tagmanager.google.com; try incognito mode",
+                "verification": "Check console for errors; verify Tag Assistant extension is installed and enabled"
+              },
+              {
+                "issue": "Container published to wrong environment",
+                "probability": "low",
+                "resolution": "Check publish target - ensure publishing to live environment, not just workspace",
+                "verification": "Check version history; verify latest version is published to Live"
+              }
+            ]
+          },
+          "tools": ["GTM Preview Mode", "GTM Debug Panel", "Tag Assistant Chrome Extension", "Browser Console (window.dataLayer)", "GTM Version History"]
+        },
+        {
+          "id": "p5-5",
+          "name": "Server-Side GTM (sGTM)",
+          "parentId": "phase-5",
+          "priority": "know_well",
+          "category": "advanced_implementation",
+          "definition": "Server-side Google Tag Manager moves tag processing from the user's browser to a server environment (typically Cloud Run or App Engine), enabling first-party data collection, improved privacy, reduced client-side load, and protection against ad blockers.",
+          "adsContext": "Server-side GTM is increasingly important as privacy regulations tighten and browsers restrict third-party cookies. It enables first-party cookie setting (longer lifetimes), reduces page load impact, and provides a privacy-preserving layer between user data and third-party vendors.",
+          "tscRelevance": "TSCs should understand sGTM architecture for advanced implementations and privacy-focused clients. While less common than client-side GTM, enterprise clients increasingly ask about sGTM for compliance and performance.",
+          "keyDetails": [
+            "Architecture: Client → Client-side GTM → sGTM Server → Google/Third parties (vs. Client → Third parties directly)",
+            "Deployment options: Google Cloud Run (recommended, auto-scaling), App Engine, or manual server deployment",
+            "First-party context: Server sets cookies as first-party (your domain), avoiding third-party cookie restrictions",
+            "Custom domain: sGTM runs on subdomain of your site (e.g., gtm.yourdomain.com) for first-party context",
+            "Data control: All data flows through your server - can sanitize, transform, or block before sending to vendors",
+            "Ad blocker resistance: Requests go to your domain, not third-party tracking domains - harder to block",
+            "Stape.io: Popular managed sGTM provider - handles hosting, scaling, and maintenance",
+            "Cost consideration: Cloud Run charges based on requests and compute time - typically $50-200/month for most sites",
+            "Client-side + Server-side: Often used together - client GTM sends to sGTM, which forwards to Google Ads"
+          ],
+          "interviewQuestions": [
+            "What are the main benefits of server-side GTM over client-side GTM?",
+            "How does server-side GTM help with privacy compliance and first-party data?",
+            "When would you recommend a client implement server-side GTM?"
+          ],
+          "sqlConnection": "sGTM can log all events to BigQuery for raw data access, enabling custom attribution models and detailed analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "sGTM not receiving events",
+              "Conversions not being forwarded",
+              "High latency in tracking",
+              "Cost unexpectedly high"
+            ],
+            "diagnosticQuestions": [
+              "Is the sGTM endpoint reachable?",
+              "Is client-side GTM sending events to sGTM endpoint?",
+              "Are server-side tags configured correctly?",
+              "Is Cloud Run scaling appropriately?"
+            ],
+            "causes": [
+              {
+                "issue": "Client-side GTM not sending to sGTM endpoint",
+                "probability": "high",
+                "resolution": "Configure transport_url in client-side gtag or GTM to point to sGTM domain",
+                "verification": "Check Network tab for requests to sGTM subdomain"
+              },
+              {
+                "issue": "sGTM client not parsing incoming requests",
+                "probability": "medium",
+                "resolution": "Verify GA4 client or custom client is configured to claim incoming requests",
+                "verification": "Use sGTM Preview mode to see if events are being parsed"
+              },
+              {
+                "issue": "Custom domain DNS not configured correctly",
+                "probability": "medium",
+                "resolution": "Set up CNAME or A record pointing subdomain to Cloud Run service",
+                "verification": "nslookup/dig the sGTM subdomain; verify SSL certificate"
+              }
+            ]
+          },
+          "tools": ["Google Cloud Console", "Cloud Run Logs", "sGTM Preview Mode", "Stape.io", "BigQuery Logging"]
+        },
+        {
+          "id": "p5-6",
+          "name": "Enhanced Conversions",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "privacy_measurement",
+          "definition": "A privacy-preserving feature that improves conversion measurement by sending hashed first-party customer data (email, phone, name, address) to Google, enabling better attribution even when cookies are limited or users browse across devices.",
+          "adsContext": "Enhanced Conversions is Google's answer to cookie deprecation and privacy restrictions. By sending hashed PII that matches against Google's signed-in user base, it recovers conversions that would otherwise be lost due to cookie restrictions, cross-device journeys, or ad blockers. This is THE future of conversion tracking.",
+          "tscRelevance": "TSCs must understand Enhanced Conversions as the primary solution for improving conversion accuracy. Implementation questions, debugging hash mismatches, and explaining privacy implications are common TSC tasks.",
+          "keyDetails": [
+            "Purpose: Recover conversions lost to cookie restrictions, cross-device paths, and privacy measures",
+            "Data types: Email (most common), phone number, first name, last name, street address, city, state, postal code, country",
+            "SHA-256 hashing: Data is hashed client-side before sending to Google - Google never sees plain text",
+            "Normalization: Data must be normalized before hashing (lowercase, trim whitespace, specific phone formats)",
+            "Implementation options: gtag.js automatic, gtag.js manual, GTM, Google Ads API",
+            "Automatic detection: gtag can auto-detect form fields with customer data (requires enabling in Ads)",
+            "Match rate: Percentage of conversions that match a Google account - higher = better attribution",
+            "Privacy compliance: Complies with GDPR when user consents to data sharing; hash is one-way",
+            "Enhanced Conversions for Leads: Variant that matches lead submissions (email) to later offline conversions"
+          ],
+          "interviewQuestions": [
+            "Explain how Enhanced Conversions improves measurement accuracy while maintaining user privacy.",
+            "A client's Enhanced Conversions match rate is only 30%. What factors might be causing low match rates?",
+            "Walk me through implementing Enhanced Conversions via GTM."
+          ],
+          "sqlConnection": "Enhanced Conversions data enriches the conversion table with modeled conversions, improving attribution accuracy in ROAS calculations.",
+          "troubleshooting": {
+            "symptoms": [
+              "Low Enhanced Conversions match rate",
+              "Enhanced Conversions not working",
+              "Conversion lift not observed",
+              "Hash validation errors"
+            ],
+            "diagnosticQuestions": [
+              "Is Enhanced Conversions enabled in the conversion action settings?",
+              "Is customer data being captured correctly on conversion pages?",
+              "Is data being normalized before hashing?",
+              "Is the correct hashing algorithm being used (SHA-256)?"
+            ],
+            "causes": [
+              {
+                "issue": "Data not normalized before hashing",
+                "probability": "high",
+                "resolution": "Normalize data: lowercase email, remove whitespace, format phone as E.164 (+1234567890)",
+                "verification": "Check GTM variable output; compare hash against test tool"
+              },
+              {
+                "issue": "Enhanced Conversions not enabled in conversion action",
+                "probability": "high",
+                "resolution": "Edit conversion action > Enhanced conversions > Turn on enhanced conversions",
+                "verification": "Check conversion action settings in Google Ads"
+              },
+              {
+                "issue": "Customer data fields not populated on conversion page",
+                "probability": "medium",
+                "resolution": "Ensure email/phone are present on thank you page (passed via dataLayer or DOM)",
+                "verification": "Check dataLayer or page source on conversion page for customer data"
+              },
+              {
+                "issue": "Automatic detection not matching form fields",
+                "probability": "medium",
+                "resolution": "Use manual implementation with explicit field mapping, or add data attributes to form fields",
+                "verification": "Check automatic detection status in Google Ads; switch to manual if needed"
+              }
+            ]
+          },
+          "tools": ["Google Ads Diagnostics", "GTM Preview Mode", "Tag Assistant", "Enhanced Conversions Helper", "SHA-256 Hash Validator"]
+        },
+        {
+          "id": "p5-7",
+          "name": "Offline Conversion Import (OCI)",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "data_integration",
+          "definition": "The process of uploading conversion data from offline sources (CRM, point-of-sale, call centers) back to Google Ads, enabling attribution of offline outcomes to online ad clicks using GCLID or Enhanced Conversions for Leads.",
+          "adsContext": "OCI is critical for businesses where the conversion happens offline - car dealerships (sale), B2B (signed contract), insurance (policy binding). Without OCI, Smart Bidding optimizes for low-value leads instead of high-value customers. This is how you train Smart Bidding on real business outcomes.",
+          "tscRelevance": "TSCs help clients implement OCI workflows, troubleshoot upload errors, and explain the GCLID → CRM → Upload cycle. Understanding data requirements and common errors is essential.",
+          "keyDetails": [
+            "GCLID capture: Must store GCLID from landing page URL in CRM at lead creation time - this is the attribution key",
+            "Upload data requirements: GCLID, conversion action name, conversion time (datetime), conversion value (optional)",
+            "Upload methods: Manual UI upload (CSV), scheduled uploads via Google Ads API, CRM integrations (Salesforce, HubSpot)",
+            "Conversion time window: Must upload within 90 days of click for attribution",
+            "Data format: Date/time in specific format (yyyy-mm-dd hh:mm:ss), GCLID as captured, no transformations",
+            "Enhanced Conversions for Leads: Alternative using hashed email instead of GCLID - easier for some CRM workflows",
+            "Click-to-conversion latency: OCI allows tracking long sales cycles (weeks/months) that exceed website conversion windows",
+            "Conversion value adjustment: Can import different values as deals progress (lead → opportunity → closed won)",
+            "Duplicate handling: Google dedupes based on GCLID + conversion action + conversion time"
+          ],
+          "interviewQuestions": [
+            "A B2B client says their Smart Bidding is optimizing for low-quality leads. How does Offline Conversion Import help?",
+            "Walk me through the complete workflow for capturing GCLID and uploading offline conversions.",
+            "What are common reasons Offline Conversion Import uploads fail?"
+          ],
+          "sqlConnection": "OCI data can be exported from CRM via SQL queries joining lead tables with conversion data, formatted for Google Ads upload requirements.",
+          "troubleshooting": {
+            "symptoms": [
+              "OCI upload failing with errors",
+              "Conversions not appearing after upload",
+              "Low attribution rate on uploads",
+              "GCLID not being captured in CRM"
+            ],
+            "diagnosticQuestions": [
+              "Is GCLID being captured and stored in the CRM?",
+              "Is the upload file formatted correctly?",
+              "Is conversion time within 90 days of click?",
+              "Does the conversion action name match exactly?"
+            ],
+            "causes": [
+              {
+                "issue": "GCLID not being captured from landing page URL",
+                "probability": "high",
+                "resolution": "Add hidden form field or JavaScript to capture gclid URL parameter and store in CRM",
+                "verification": "Check CRM lead records for populated GCLID field after ad clicks"
+              },
+              {
+                "issue": "Conversion action name doesn't match Google Ads",
+                "probability": "high",
+                "resolution": "Use exact conversion action name from Google Ads (case-sensitive)",
+                "verification": "Compare upload file values against Conversions list in Google Ads"
+              },
+              {
+                "issue": "Date/time format incorrect",
+                "probability": "high",
+                "resolution": "Use format: yyyy-mm-dd hh:mm:ss (e.g., 2024-01-15 14:30:00) in consistent timezone",
+                "verification": "Validate format in upload file; check timezone settings"
+              },
+              {
+                "issue": "GCLID modified or truncated in CRM",
+                "probability": "medium",
+                "resolution": "Ensure CRM field can store full GCLID (up to 100 chars); no transformations applied",
+                "verification": "Compare stored GCLID against original URL parameter length"
+              },
+              {
+                "issue": "Upload after 90-day click-to-conversion window",
+                "probability": "medium",
+                "resolution": "Implement more frequent uploads; for long sales cycles, consider interim conversion actions",
+                "verification": "Check time between click date and upload conversion time"
+              }
+            ]
+          },
+          "tools": ["Google Ads Offline Conversion Upload", "Google Ads API", "CRM GCLID Field", "Salesforce Google Ads Integration", "Zapier/Make"]
+        },
+        {
+          "id": "p5-8",
+          "name": "GA4 - Google Ads Integration",
+          "parentId": "phase-5",
+          "priority": "know_well",
+          "category": "platform_integration",
+          "definition": "The bidirectional connection between Google Analytics 4 and Google Ads that enables importing GA4 conversions, sharing audiences, and unifying measurement across platforms while understanding the attribution differences between them.",
+          "adsContext": "GA4 integration provides richer conversion data (including micro-conversions and engagement metrics) and powerful audience capabilities. However, attribution models and conversion counts often differ between GA4 and Google Ads native tracking, causing confusion. Understanding when to use each is key.",
+          "tscRelevance": "TSCs frequently troubleshoot discrepancies between GA4 and Google Ads conversion counts. Understanding why the numbers differ (attribution models, conversion windows, counting methods) is essential for client conversations.",
+          "keyDetails": [
+            "Account linking: Connect GA4 property to Google Ads account in GA4 Admin > Product Links",
+            "Importing conversions: GA4 events/conversions can be imported into Google Ads for bid optimization",
+            "GA4 vs native tracking: GA4 uses data-driven attribution by default; Google Ads tag captures additional signals",
+            "Audience sharing: GA4 audiences (based on behavior, demographics) can be used for Google Ads remarketing",
+            "Attribution differences: GA4 uses 30-day lookback by default; Google Ads up to 90 days - causes count discrepancies",
+            "Conversion counting: GA4 counts unique users by default; Google Ads counts every conversion instance",
+            "Auto-tagging requirement: Must enable auto-tagging for Google Ads data to appear in GA4",
+            "User ID: When GA4 has User ID enabled, cross-device attribution improves significantly",
+            "Recommended use: Use Google Ads native for primary conversions (better signals); GA4 for micro-conversions and audiences"
+          ],
+          "interviewQuestions": [
+            "A client asks why their GA4 conversion count differs from Google Ads. What are the likely causes?",
+            "When would you recommend importing GA4 conversions vs using native Google Ads tracking?",
+            "How does GA4 audience sharing benefit Google Ads campaigns?"
+          ],
+          "sqlConnection": "Both GA4 (BigQuery export) and Google Ads data can be joined on GCLID or user identifiers for unified analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "GA4 and Google Ads conversion counts don't match",
+              "Audiences not appearing in Google Ads",
+              "Imported conversions showing no data",
+              "Google Ads data not appearing in GA4"
+            ],
+            "diagnosticQuestions": [
+              "Are the accounts properly linked?",
+              "Is auto-tagging enabled in Google Ads?",
+              "Are attribution models the same in both platforms?",
+              "Are conversion counting methods configured the same?"
+            ],
+            "causes": [
+              {
+                "issue": "Attribution model differences",
+                "probability": "high",
+                "resolution": "Understand that differences are expected - GA4 defaults to data-driven, Google Ads varies. Align reporting expectations.",
+                "verification": "Check attribution settings in both platforms; explain expected variance to clients"
+              },
+              {
+                "issue": "Accounts not linked properly",
+                "probability": "high",
+                "resolution": "Verify linking in GA4 Admin > Product Links > Google Ads; check for correct account ID",
+                "verification": "Confirm link status in both GA4 and Google Ads Linked Accounts"
+              },
+              {
+                "issue": "Auto-tagging disabled",
+                "probability": "medium",
+                "resolution": "Enable auto-tagging in Google Ads Account Settings for GA4 to receive campaign data",
+                "verification": "Check Account Settings > Auto-tagging; verify GCLID appears in URLs"
+              },
+              {
+                "issue": "Audience list too small (under 1000 users)",
+                "probability": "medium",
+                "resolution": "GA4 audiences need 1000+ users to be usable in Google Ads; broaden audience definition or wait for growth",
+                "verification": "Check audience size in GA4; review minimum requirements in Google Ads"
+              }
+            ]
+          },
+          "tools": ["GA4 Admin", "Google Ads Linked Accounts", "GA4 Conversions", "Audience Manager", "Model Comparison Report"]
+        },
+        {
+          "id": "p5-9",
+          "name": "Attribution Models",
+          "parentId": "phase-5",
+          "priority": "know_well",
+          "category": "measurement",
+          "definition": "The rules that determine how credit for conversions is assigned to touchpoints in the customer journey, ranging from simple last-click attribution to machine learning-based data-driven attribution that analyzes conversion patterns.",
+          "adsContext": "Attribution models directly impact how Smart Bidding optimizes and how performance appears in reports. Last-click overvalues bottom-funnel keywords; data-driven attribution (DDA) distributes credit based on actual impact. Understanding attribution is key to interpreting campaign performance.",
+          "tscRelevance": "TSCs explain attribution differences to clients who question why changing models affects reported performance. Understanding DDA's machine learning approach and cross-device capabilities is increasingly important.",
+          "keyDetails": [
+            "Last-click (default legacy): 100% credit to final click before conversion - overvalues brand/retargeting",
+            "First-click: 100% credit to first interaction - overvalues awareness campaigns",
+            "Linear: Equal credit to all touchpoints - simple but not reflective of actual impact",
+            "Time decay: More credit to touchpoints closer to conversion - balances awareness and closing",
+            "Position-based: 40% first, 40% last, 20% split among middle - values journey endpoints",
+            "Data-driven attribution (DDA): ML-based model using your account data to calculate each touchpoint's actual impact",
+            "DDA requirements: Sufficient conversion volume (typically 300+ conversions in 30 days) for model training",
+            "Cross-device attribution: DDA uses Google signed-in data to connect conversion paths across devices",
+            "Model comparison report: Tool in Google Ads to see how different models would credit your conversions",
+            "Impact on Smart Bidding: Bid strategies use attribution model to value each click - DDA provides best signal quality"
+          ],
+          "interviewQuestions": [
+            "Explain how data-driven attribution differs from last-click attribution.",
+            "A client switched from last-click to data-driven attribution and now their brand campaign looks worse. Why?",
+            "Why does Google recommend data-driven attribution for Smart Bidding campaigns?"
+          ],
+          "sqlConnection": "Attribution data can be analyzed in BigQuery to see fractional conversion credit per touchpoint, enabling custom attribution analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversion credit seems wrong after model change",
+              "DDA not available for conversion action",
+              "Performance appears to change after attribution switch",
+              "Cross-device conversions not showing"
+            ],
+            "diagnosticQuestions": [
+              "What attribution model was used before vs now?",
+              "Does the account have sufficient conversion volume for DDA?",
+              "Are users signed into Google for cross-device tracking?",
+              "Is the comparison accounting for attribution methodology change?"
+            ],
+            "causes": [
+              {
+                "issue": "Misunderstanding that attribution change affects 'actual' performance",
+                "probability": "high",
+                "resolution": "Explain that attribution changes how credit is reported, not actual conversions - it's a measurement change",
+                "verification": "Show total conversions remain same; only distribution across touchpoints changes"
+              },
+              {
+                "issue": "Insufficient conversion volume for DDA",
+                "probability": "medium",
+                "resolution": "DDA requires ~300 conversions in 30 days; use last-click or position-based for low-volume actions",
+                "verification": "Check conversion volume in last 30 days; review DDA eligibility in attribution settings"
+              },
+              {
+                "issue": "Not comparing like-for-like after model change",
+                "probability": "medium",
+                "resolution": "Use Model Comparison report to see same data under different models; allow time for reporting to stabilize",
+                "verification": "Run model comparison for historical period to understand impact"
+              }
+            ]
+          },
+          "tools": ["Attribution Model Settings", "Model Comparison Report", "Attribution Paths", "Top Conversion Paths", "Data-Driven Attribution"]
+        },
+        {
+          "id": "p5-10",
+          "name": "Consent Mode v2",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "privacy",
+          "definition": "Google's framework for adjusting Google tag behavior based on user consent status, enabling privacy-compliant measurement while using conversion modeling to estimate conversions from users who don't consent to tracking.",
+          "adsContext": "Consent Mode v2 is REQUIRED for EU/EEA advertisers as of March 2024. Without it, remarketing lists cannot be built and conversion data is limited. It enables compliant measurement while using Google's AI to model conversions from non-consenting users.",
+          "tscRelevance": "TSCs must understand Consent Mode implementation, the consent signals, and how modeling fills gaps. Privacy compliance questions are increasingly common, especially for EU clients.",
+          "keyDetails": [
+            "Four consent signals: ad_storage (advertising cookies), analytics_storage (analytics cookies), ad_user_data (user data for ads), ad_personalization (personalized ads)",
+            "Default state: Set consent states before tags fire - typically denied in EU until user consents",
+            "Update on consent: gtag('consent', 'update', {...}) when user makes consent choice",
+            "Behavior when denied: No cookies set, limited data collected via cookieless pings, but pings still sent",
+            "Conversion modeling: Google's AI estimates conversions from non-consenting users based on observed patterns",
+            "EU/EEA requirement: As of March 2024, ad_user_data and ad_personalization signals required for EU users",
+            "Consent Mode v2 vs v1: v2 adds ad_user_data and ad_personalization signals (required for compliance)",
+            "CMP integration: Consent Management Platforms (OneTrust, Cookiebot) can automatically update consent signals",
+            "Basic vs Advanced mode: Basic blocks all tags until consent; Advanced sends cookieless pings even without consent"
+          ],
+          "interviewQuestions": [
+            "Explain what happens when a user denies consent under Consent Mode v2.",
+            "What are the four consent signals in Consent Mode v2 and what does each control?",
+            "How does Google's conversion modeling work for users who don't consent to tracking?"
+          ],
+          "sqlConnection": "Consent state can be logged to BigQuery for analysis of consent rates and their impact on measurement coverage.",
+          "troubleshooting": {
+            "symptoms": [
+              "No remarketing audiences being built for EU users",
+              "Conversion numbers dropped after Consent Mode implementation",
+              "Tags not firing at all for EU users",
+              "Consent signals not being sent"
+            ],
+            "diagnosticQuestions": [
+              "Is Consent Mode implemented with all four v2 signals?",
+              "Is the consent banner triggering gtag consent updates?",
+              "Are default consent states set before gtag/GTM loads?",
+              "Is Advanced mode enabled for modeling?"
+            ],
+            "causes": [
+              {
+                "issue": "Consent Mode not implemented or using v1 instead of v2",
+                "probability": "high",
+                "resolution": "Implement Consent Mode v2 with all four signals; update existing v1 implementation",
+                "verification": "Check gtag consent calls include ad_user_data and ad_personalization"
+              },
+              {
+                "issue": "Using Basic mode - tags completely blocked without consent",
+                "probability": "high",
+                "resolution": "Switch to Advanced mode to enable cookieless pings and conversion modeling",
+                "verification": "Check default consent implementation; verify pings sent even when denied"
+              },
+              {
+                "issue": "CMP not properly updating consent signals",
+                "probability": "medium",
+                "resolution": "Configure CMP to call gtag('consent', 'update') when user makes choice",
+                "verification": "Test consent flow; check console for consent update calls after banner interaction"
+              },
+              {
+                "issue": "Consent defaults set after tags fire (timing issue)",
+                "probability": "medium",
+                "resolution": "Set gtag('consent', 'default') before gtag.js loads or in GTM before any tag fires",
+                "verification": "Check page source order; ensure consent default is first gtag call"
+              }
+            ]
+          },
+          "tools": ["GTM Consent Mode Template", "CMP Integration", "Tag Assistant Consent Tab", "Google Ads Diagnostics", "Consent Mode Implementation Checker"]
+        },
+        {
+          "id": "p5-11",
+          "name": "Conversion Linker",
+          "parentId": "phase-5",
+          "priority": "know_well",
+          "category": "tracking_utility",
+          "definition": "A GTM tag (or functionality in gtag.js) that stores ad click information (GCLID, DCLID) in first-party cookies and enables cross-domain tracking by decorating links with click identifiers.",
+          "adsContext": "The Conversion Linker is essential for GCLID persistence, especially for cross-domain journeys. Without it, GCLID may be lost between landing page and conversion page, breaking attribution. It's the unsung hero of conversion tracking.",
+          "tscRelevance": "TSCs troubleshoot conversion attribution issues that often trace back to missing or misconfigured Conversion Linker tags, especially in cross-domain scenarios.",
+          "keyDetails": [
+            "Primary function: Reads GCLID/DCLID from URL and stores in first-party _gcl_* cookies",
+            "Cookie: _gcl_aw for Google Ads click, _gcl_dc for Display & Video 360, _gcl_gb for Google Analytics",
+            "Cross-domain tracking: Decorates links to other domains with click identifier to maintain attribution",
+            "Link decoration: Appends _gl parameter to cross-domain links, carrying click information",
+            "Configuration in GTM: Add Conversion Linker tag, set trigger to All Pages",
+            "Cross-domain setup: Enable link decoration; specify accepted incoming link domains",
+            "Cookie duration: Defaults to 90 days, matching Google Ads conversion window",
+            "When to use: Required for GTM implementations; gtag.js includes this functionality automatically"
+          ],
+          "interviewQuestions": [
+            "What does the Conversion Linker tag do and when is it required?",
+            "A client has a two-domain checkout flow and conversions aren't tracking. What might be missing?",
+            "How does cross-domain tracking work via the Conversion Linker?"
+          ],
+          "sqlConnection": "Conversion Linker enables GCLID persistence that makes click-to-conversion joins possible in SQL analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "GCLID not persisting across pages",
+              "Cross-domain conversions not tracking",
+              "_gcl_aw cookie not being set",
+              "Attribution breaking on domain transitions"
+            ],
+            "diagnosticQuestions": [
+              "Is Conversion Linker tag present and firing?",
+              "Is the tag firing on all pages (including landing page)?",
+              "For cross-domain, is link decoration enabled?",
+              "Are all domains in the cross-domain list?"
+            ],
+            "causes": [
+              {
+                "issue": "Conversion Linker tag missing from GTM container",
+                "probability": "high",
+                "resolution": "Add Conversion Linker tag with All Pages trigger",
+                "verification": "Check GTM Tags list; verify tag fires in Preview mode on all pages"
+              },
+              {
+                "issue": "Conversion Linker not firing on landing page",
+                "probability": "high",
+                "resolution": "Ensure trigger is All Pages or includes landing page URLs; verify GTM snippet is on landing page",
+                "verification": "Use Preview mode on landing page; check _gcl_aw cookie is set"
+              },
+              {
+                "issue": "Cross-domain link decoration not configured",
+                "probability": "high",
+                "resolution": "Enable 'Enable linking on outbound links' and 'Accept incoming' in Conversion Linker settings",
+                "verification": "Click through to other domain; check URL for _gl parameter"
+              },
+              {
+                "issue": "Domains not in accepted incoming list",
+                "probability": "medium",
+                "resolution": "Add all domains in the conversion path to 'Domains to decorate' and 'Accept incoming from'",
+                "verification": "Review Conversion Linker configuration; test full user journey"
+              }
+            ]
+          },
+          "tools": ["GTM Conversion Linker Tag", "GTM Preview Mode", "Browser Cookies (_gcl_aw)", "Tag Assistant", "URL Inspection (_gl parameter)"]
+        },
+        {
+          "id": "p5-12",
+          "name": "Conversion Tracking Troubleshooting Framework",
+          "parentId": "phase-5",
+          "priority": "must_know_cold",
+          "category": "troubleshooting",
+          "definition": "A systematic 5-step diagnostic decision tree for identifying and resolving conversion tracking issues, covering tag firing, GCLID presence, conversion recording, attribution settings, and consent/privacy blocks.",
+          "adsContext": "Conversion tracking issues are the most common TSC support tickets. A systematic approach prevents wasted time and ensures no step is missed. This framework covers 95% of conversion tracking issues in order of probability.",
+          "tscRelevance": "This is THE framework TSCs use daily. Walking through these 5 steps systematically will diagnose almost any conversion tracking issue. Master this and you can troubleshoot like a senior TSC.",
+          "keyDetails": [
+            "Step 1 - Is the tag firing? Check GTM Preview mode, Tag Assistant, or Network tab for conversion requests",
+            "Step 2 - Is GCLID present? Check URL for ?gclid= parameter and browser cookies for _gcl_aw",
+            "Step 3 - Is conversion being recorded? Check Google Ads > Conversions for recent conversion data and status",
+            "Step 4 - Is attribution working? Verify conversion action settings (window, counting, include in conversions)",
+            "Step 5 - Is consent blocking? Check Consent Mode implementation, verify consent signals being sent",
+            "Tool hierarchy: GTM Preview > Tag Assistant > Network tab > Google Ads Diagnostics",
+            "Common quick wins: Auto-tagging off, Conversion Linker missing, wrong Conversion Label, CSP blocking",
+            "Data latency: Conversion data can take 24-72 hours to appear; don't panic within this window"
+          ],
+          "interviewQuestions": [
+            "Walk me through your systematic approach to diagnosing why conversions aren't tracking.",
+            "A client says they had conversions yesterday but none today. What's your troubleshooting process?",
+            "What tools do you use at each step of conversion tracking troubleshooting?"
+          ],
+          "sqlConnection": "Diagnostic queries can identify missing GCLID joins, conversion time delays, and attribution gaps in data warehouse.",
+          "troubleshooting": {
+            "symptoms": [
+              "Zero conversions tracking",
+              "Conversion count dropped suddenly",
+              "Conversions not matching actual sales",
+              "Some conversions tracking, others not"
+            ],
+            "diagnosticQuestions": [
+              "Step 1: Is the tag firing on the conversion page?",
+              "Step 2: Is GCLID appearing in URLs and stored in cookies?",
+              "Step 3: Are conversions appearing in Google Ads (allow for lag)?",
+              "Step 4: Are conversion action settings correct?",
+              "Step 5: Is Consent Mode blocking measurement?"
+            ],
+            "causes": [
+              {
+                "issue": "Step 1 failure: Tag not firing",
+                "probability": "high",
+                "resolution": "Check GTM Preview, Tag Assistant, or Network tab for conversion request. Fix tag/trigger configuration.",
+                "verification": "GTM Preview shows tag firing; Network tab shows request to googleadservices.com"
+              },
+              {
+                "issue": "Step 2 failure: GCLID missing",
+                "probability": "high",
+                "resolution": "Enable auto-tagging in Google Ads; fix redirect chains that strip parameters; add Conversion Linker",
+                "verification": "Click ad, verify ?gclid= in URL; check _gcl_aw cookie exists"
+              },
+              {
+                "issue": "Step 3 failure: Conversion not recorded despite tag firing",
+                "probability": "medium",
+                "resolution": "Check conversion action status (active, not removed); verify Conversion ID/Label match; wait 24-72 hours for data",
+                "verification": "Google Ads > Conversions > Actions shows active status and recent conversions"
+              },
+              {
+                "issue": "Step 4 failure: Attribution not working",
+                "probability": "medium",
+                "resolution": "Check conversion window (may be too short for sales cycle); verify attribution model; check 'Include in conversions' setting",
+                "verification": "Review conversion action settings; compare conversion time to click time"
+              },
+              {
+                "issue": "Step 5 failure: Consent Mode blocking",
+                "probability": "medium",
+                "resolution": "Implement/fix Consent Mode v2; ensure Advanced mode for modeling; verify consent banner triggers gtag update",
+                "verification": "Use Tag Assistant Consent tab; check for consent signals in network requests"
+              },
+              {
+                "issue": "CSP blocking tag from loading",
+                "probability": "high",
+                "resolution": "Add googleadservices.com, googletagmanager.com, google.com to script-src and img-src in CSP header",
+                "verification": "Check browser console for 'Refused to load' errors; verify CSP header allows Google domains"
+              }
+            ]
+          },
+          "tools": ["GTM Preview Mode", "Tag Assistant", "Browser DevTools (Network, Console)", "Google Ads Diagnostics", "Conversion Action Settings", "Consent Mode Checker"]
+        }
+      ]
     }
   ],
   "crossCutting": {
