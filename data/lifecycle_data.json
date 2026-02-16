@@ -1882,6 +1882,660 @@
           ]
         }
       ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Ad Auction",
+      "phaseNumber": 3,
+      "priority": "must_know_cold",
+      "category": "architecture",
+      "funnelStage": "Intent",
+      "summary": "The real-time auction system that determines which ads show, in what position, and at what cost for every Google search query",
+      "adsContext": "The ad auction is the core engine of Google Ads. Every search triggers an instantaneous auction where eligible ads compete based on Ad Rank (bid × Quality Score × expected impact of extensions). Understanding auction mechanics is fundamental to diagnosing why ads aren't showing, why CPCs are high, and how to improve performance.",
+      "dataFlowIn": "User search query, eligible ads from targeting phase, bid strategy settings, Quality Score components, ad extensions",
+      "dataFlowOut": "Winning ads with positions, actual CPCs charged, impression and click data, auction insights",
+      "children": [
+        {
+          "id": "p3-1",
+          "name": "Auction Mechanics",
+          "parentId": "phase-3",
+          "priority": "must_know_cold",
+          "category": "auction_system",
+          "definition": "The real-time process by which Google determines which ads to show for each search query. Auctions run instantaneously (<100ms) for every query, evaluating all eligible ads and determining winners based on Ad Rank.",
+          "adsContext": "Google runs billions of auctions per day, each completing in under 100 milliseconds. Every auction is independent - there's no 'winning' an auction for an hour or a day. The system parses the query, identifies matching keywords, determines eligible ads, calculates Ad Rank for each, and selects winners in real-time.",
+          "tscRelevance": "TSCs must understand that auctions are per-query, not periodic. This explains why performance varies by query, time, and user signals. Common misconceptions include thinking you can 'lock in' a position or that auction results persist.",
+          "keyDetails": [
+            "Real-time execution: Each auction completes in <100 milliseconds from query to ad selection",
+            "Scale: Google processes billions of ad auctions daily across Search, Display, YouTube, and other properties",
+            "Query parsing: System analyzes search query for intent, context, location, device, time, and user signals",
+            "Keyword matching: Query is matched against advertiser keywords using match type logic (exact, phrase, broad)",
+            "Eligibility determination: Only ads meeting targeting criteria, policy requirements, budget availability, and active status enter auction",
+            "Per-query independence: Each search triggers a fresh auction; previous results don't guarantee future position"
+          ],
+          "interviewQuestions": [
+            "Walk me through what happens from the moment a user types a search query to when ads appear.",
+            "A client says they had position 1 yesterday but position 3 today with no changes. How do you explain this?",
+            "Why does Google run a new auction for every query instead of caching results?"
+          ],
+          "sqlConnection": "Auction data can be analyzed via Auction Insights report. SQL queries can identify patterns in impression share, overlap rate, and position metrics across time periods and segments.",
+          "troubleshooting": {
+            "symptoms": [
+              "Ad position fluctuating significantly",
+              "Ads not entering auctions despite eligible status",
+              "Impression share lower than expected",
+              "Inconsistent performance across similar queries"
+            ],
+            "diagnosticQuestions": [
+              "Is the keyword status showing as eligible?",
+              "Are there budget constraints limiting auction entry?",
+              "What does Auction Insights show about competitive landscape?",
+              "Are there time-of-day or device patterns in the fluctuations?"
+            ],
+            "causes": [
+              {
+                "issue": "Budget exhaustion preventing auction entry",
+                "probability": "high",
+                "resolution": "Increase budget or check for budget pacing issues causing mid-day depletion",
+                "verification": "Check 'Limited by budget' status, review Search Impression Share Lost (budget)"
+              },
+              {
+                "issue": "Quality Score too low for competitive Ad Rank",
+                "probability": "high",
+                "resolution": "Improve Quality Score components (expected CTR, ad relevance, landing page experience)",
+                "verification": "Check Quality Score column and component breakdowns"
+              },
+              {
+                "issue": "Competitors entering/exiting auctions causing position variance",
+                "probability": "medium",
+                "resolution": "Monitor Auction Insights for new competitors; focus on improving Ad Rank rather than chasing position",
+                "verification": "Review Auction Insights overlap rate and position above rate trends"
+              }
+            ]
+          },
+          "tools": ["Auction Insights", "Keyword Diagnosis", "Ad Preview Tool", "Search Impression Share columns"]
+        },
+        {
+          "id": "p3-2",
+          "name": "Ad Rank Calculation",
+          "parentId": "phase-3",
+          "priority": "must_know_cold",
+          "category": "auction_system",
+          "definition": "The formula Google uses to determine ad position and eligibility in the auction. Ad Rank = Bid × Quality Score × Expected Impact of Extensions. Ads must meet a minimum Ad Rank threshold to show, and position is determined by relative Ad Rank among competitors.",
+          "adsContext": "Ad Rank is the single most important concept in Google Ads auction mechanics. It combines three factors: what you're willing to pay (bid), how relevant/useful your ad is (Quality Score), and the expected contribution of your ad extensions. Higher Ad Rank means better position AND potentially lower costs due to second-price auction mechanics.",
+          "tscRelevance": "TSCs constantly use Ad Rank to explain performance: why ads aren't showing (below threshold), why CPCs are high (low Quality Score requiring higher bids), and why position dropped (competitor improved their Ad Rank). This is MUST KNOW COLD for interviews.",
+          "keyDetails": [
+            "Formula: Ad Rank = Max CPC Bid × Quality Score × Expected Impact of Extensions and Ad Formats",
+            "Position determination: Highest Ad Rank gets position 1, second highest gets position 2, etc.",
+            "Ad Rank threshold: Minimum Ad Rank required to show in a given position; varies by query competitiveness",
+            "Second-price auction: You pay just enough to beat the next competitor's Ad Rank, not your max bid",
+            "Actual CPC formula: (Ad Rank of advertiser below you ÷ Your Quality Score) + $0.01",
+            "Example calculation: If your bid is $2, QS is 8, and extensions boost by 1.1x, Ad Rank = 2 × 8 × 1.1 = 17.6"
+          ],
+          "interviewQuestions": [
+            "Write out the Ad Rank formula and explain each component.",
+            "Advertiser A bids $3 with QS 6. Advertiser B bids $2 with QS 10. Who wins position 1 and why?",
+            "How does Quality Score affect both ad position AND actual cost per click?"
+          ],
+          "sqlConnection": "While Ad Rank itself isn't directly exposed, you can analyze its components (bid, Quality Score) and outcomes (position, actual CPC) to infer Ad Rank dynamics.",
+          "troubleshooting": {
+            "symptoms": [
+              "Low ad position despite high bids",
+              "Actual CPC close to or at max bid",
+              "Ads not showing (below threshold)",
+              "Position dropped without bid changes"
+            ],
+            "diagnosticQuestions": [
+              "What is the Quality Score for the affected keywords?",
+              "Are ad extensions enabled and showing?",
+              "What is the Ad Rank threshold for these queries (competitiveness)?",
+              "Has competitive landscape changed per Auction Insights?"
+            ],
+            "causes": [
+              {
+                "issue": "Low Quality Score dragging down Ad Rank",
+                "probability": "high",
+                "resolution": "Quality Score has equal weight to bid. A QS of 4 vs 8 means you need 2x the bid for same Ad Rank. Improve QS components.",
+                "verification": "Check QS column; if below 6, prioritize QS improvements over bid increases"
+              },
+              {
+                "issue": "No extensions reducing Ad Rank multiplier",
+                "probability": "medium",
+                "resolution": "Add all relevant extensions (sitelinks, callouts, structured snippets, call, location). Extensions improve Ad Rank at no extra cost.",
+                "verification": "Check Assets tab for extension coverage; ensure extensions are approved and showing"
+              },
+              {
+                "issue": "Below Ad Rank threshold for query",
+                "probability": "medium",
+                "resolution": "Highly competitive queries have higher thresholds. Improve all Ad Rank components or target less competitive queries.",
+                "verification": "Use Keyword Diagnosis to check if keyword can trigger ads; review 'Eligible (limited)' status"
+              }
+            ]
+          },
+          "tools": ["Quality Score columns", "Extensions/Assets tab", "Keyword Diagnosis", "Auction Insights"],
+          "children": [
+            {
+              "id": "p3-2-1",
+              "name": "Second-Price Auction Mechanics",
+              "parentId": "p3-2",
+              "priority": "must_know_cold",
+              "category": "pricing_mechanics",
+              "definition": "Google's auction model where the winning advertiser pays just enough to beat the next highest Ad Rank, plus $0.01, rather than paying their maximum bid. This creates incentives for truthful bidding and rewards high Quality Score.",
+              "adsContext": "The second-price auction is fundamental to Google Ads economics. You never pay more than necessary to maintain your position. This means actual CPC is almost always below max CPC bid, and improving Quality Score directly reduces costs.",
+              "tscRelevance": "TSCs must be able to walk through second-price calculation examples. Clients often don't understand why they're charged less than their bid, or why improving Quality Score saves money.",
+              "keyDetails": [
+                "Actual CPC Formula: (Ad Rank to beat ÷ Your Quality Score) + $0.01",
+                "Example: Competitor Ad Rank = 12, Your QS = 8. Actual CPC = (12 ÷ 8) + $0.01 = $1.51",
+                "Your bid could be $5, but you only pay $1.51 to hold position",
+                "Higher QS = Lower denominator = Lower actual CPC for same position",
+                "At position 1 with no competitor: You pay the minimum threshold to show, not your max bid",
+                "Truthful bidding: System incentivizes bidding your true value since you only pay what's necessary"
+              ],
+              "interviewQuestions": [
+                "Walk me through a second-price auction example with specific numbers.",
+                "Three advertisers: A bids $4 (QS 5), B bids $3 (QS 7), C bids $2 (QS 10). Calculate positions and actual CPCs.",
+                "A client doubled their bid but CPC only increased slightly. Why?"
+              ],
+              "sqlConnection": "Compare max CPC bid to actual CPC across keywords to see second-price savings. Higher QS keywords should show larger gap between max bid and actual CPC.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Actual CPC equals or nearly equals max CPC bid",
+                  "Confusion about why CPC is less than bid",
+                  "CPC increased despite no bid change"
+                ],
+                "diagnosticQuestions": [
+                  "What is the Quality Score? (Low QS = higher CPC)",
+                  "Has competition increased per Auction Insights?",
+                  "Is the max bid appropriate for the competitive landscape?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Actual CPC near max bid indicates intense competition or low QS",
+                    "probability": "high",
+                    "resolution": "Improve Quality Score to lower the denominator in CPC calculation. If QS is already high, competition is simply strong.",
+                    "verification": "Check QS; if above 7 and still paying near max bid, market is highly competitive"
+                  },
+                  {
+                    "issue": "CPC rose because competitor improved their Ad Rank",
+                    "probability": "medium",
+                    "resolution": "You now need higher Ad Rank to beat them, so your CPC increases. Focus on your own Ad Rank components.",
+                    "verification": "Check Auction Insights for position above rate changes from competitors"
+                  }
+                ]
+              },
+              "tools": ["Avg CPC column", "Max CPC column", "Quality Score", "Auction Insights"]
+            }
+          ]
+        },
+        {
+          "id": "p3-3",
+          "name": "Quality Score Deep Dive",
+          "parentId": "phase-3",
+          "priority": "must_know_cold",
+          "category": "quality_system",
+          "definition": "A 1-10 diagnostic score that estimates the quality and relevance of your ads, keywords, and landing pages. Quality Score is composed of three components: Expected CTR, Ad Relevance, and Landing Page Experience. The diagnostic score differs from the real-time auction-time quality used in Ad Rank.",
+          "adsContext": "Quality Score is Google's way of ensuring ad quality and user experience. High Quality Score advertisers pay less per click and get better positions. The 1-10 score shown in the UI is a diagnostic tool; actual auction-time quality calculations use real-time signals including device, location, time, and query specifics.",
+          "tscRelevance": "Quality Score troubleshooting is a daily TSC activity. Understanding that the visible 1-10 score is diagnostic (aggregated historical) while auctions use real-time quality helps explain discrepancies between expected and actual performance.",
+          "keyDetails": [
+            "Components: Expected CTR + Ad Relevance + Landing Page Experience, each rated Below Average, Average, or Above Average",
+            "Scale: 1-10, where 1-4 is poor, 5-6 is average, 7+ is good",
+            "Diagnostic vs Auction-time: UI shows aggregated diagnostic score; actual auctions use real-time calculations with additional signals",
+            "Real-time signals include: Exact search query, device type, user location, time of day, ad creative being shown",
+            "Improving QS: Match ads to keywords (relevance), write compelling ads (CTR), optimize landing pages (experience)",
+            "Impact: A QS of 4 vs 8 means you need 2x the bid to achieve the same Ad Rank"
+          ],
+          "interviewQuestions": [
+            "Explain the three components of Quality Score and how to improve each.",
+            "What's the difference between the Quality Score shown in the UI and the quality used in the actual auction?",
+            "A keyword has QS 7 but ad position is still low. What could explain this?"
+          ],
+          "sqlConnection": "Quality Score data can be exported and analyzed by campaign, ad group, and keyword. SQL analysis identifies patterns in low-QS keywords by ad group structure or landing page.",
+          "troubleshooting": {
+            "symptoms": [
+              "Low Quality Score despite good CTR",
+              "Quality Score different from expected based on performance",
+              "QS 7+ but still paying high CPCs",
+              "Sudden Quality Score drop"
+            ],
+            "diagnosticQuestions": [
+              "Which component(s) are rated Below Average?",
+              "Is the keyword tightly aligned with ad copy?",
+              "What is the landing page experience (speed, relevance, mobile-friendly)?",
+              "Have ads or landing pages changed recently?"
+            ],
+            "causes": [
+              {
+                "issue": "Landing Page Experience dragging down QS",
+                "probability": "high",
+                "resolution": "Check Core Web Vitals, ensure mobile-friendly design, match landing page content to keyword intent",
+                "verification": "Run PageSpeed Insights, check Mobile-Friendly Test, verify content relevance"
+              },
+              {
+                "issue": "Ad Relevance low due to keyword-ad mismatch",
+                "probability": "high",
+                "resolution": "Include the keyword (or close variant) in ad headlines; restructure ad groups for tighter themes",
+                "verification": "Check if primary keyword appears in ad headlines and descriptions"
+              },
+              {
+                "issue": "Expected CTR Below Average despite actual good CTR",
+                "probability": "medium",
+                "resolution": "Expected CTR is position-normalized. Your actual CTR might be high only because of position, not ad quality. Improve ad copy.",
+                "verification": "Compare CTR to industry benchmarks for similar positions"
+              }
+            ]
+          },
+          "tools": ["Quality Score columns", "PageSpeed Insights", "Mobile-Friendly Test", "Landing Page Report", "Ad Strength"],
+          "children": [
+            {
+              "id": "p3-3-1",
+              "name": "Expected CTR",
+              "parentId": "p3-3",
+              "priority": "must_know_cold",
+              "category": "quality_components",
+              "definition": "A Quality Score component that predicts how likely users are to click your ad when shown for a keyword. Google uses historical performance data and ML models to estimate CTR, normalizing for ad position effects.",
+              "adsContext": "Expected CTR predicts click-through likelihood based on your ad's historical performance and ML predictions. It's position-normalized, meaning Google estimates what your CTR would be regardless of position. An ad in position 4 with high actual CTR might have good Expected CTR because the model accounts for position.",
+              "tscRelevance": "TSCs explain that Expected CTR isn't just your raw CTR - it's Google's prediction of how compelling your ad is relative to competitors and accounting for position. Improving Expected CTR requires better ad copy, not just bidding for better positions.",
+              "keyDetails": [
+                "ML-based prediction: Uses historical CTR data plus machine learning to predict future performance",
+                "Position-normalized: Estimates CTR independent of current position to fairly compare ads",
+                "Historical performance: Your keyword's past CTR heavily influences the prediction",
+                "Ratings: Above Average, Average, Below Average - no numeric score shown",
+                "Improvement: Write more compelling headlines, use emotional triggers, include keywords, add urgency",
+                "New keywords: Start with estimated CTR; builds history over time"
+              ],
+              "interviewQuestions": [
+                "Why is Expected CTR 'position-normalized' and why does that matter?",
+                "A keyword has 5% CTR in position 4 but Expected CTR shows Below Average. How is this possible?",
+                "How would you improve Expected CTR for underperforming keywords?"
+              ],
+              "sqlConnection": "CTR analysis by position segment helps understand true ad quality. SQL can calculate position-normalized CTR by comparing to benchmarks per position.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Expected CTR Below Average despite decent actual CTR",
+                  "New keywords starting with poor Expected CTR",
+                  "Expected CTR not improving despite ad changes"
+                ],
+                "diagnosticQuestions": [
+                  "What is the actual CTR and in what positions?",
+                  "How does the ad copy compare to competitor ads?",
+                  "Are the keywords and ads tightly matched?",
+                  "Have you tested multiple ad variations?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Actual CTR inflated by low position (position 4-5 has lower expectations)",
+                    "probability": "medium",
+                    "resolution": "Position-normalized CTR accounts for this. Focus on ad copy improvements, not position.",
+                    "verification": "Compare CTR to position benchmarks; position 1 benchmark ~6-7%, position 4 ~2-3%"
+                  },
+                  {
+                    "issue": "Ad copy less compelling than competitors",
+                    "probability": "high",
+                    "resolution": "Use Ad Preview to see competitor ads; add unique selling points, numbers, CTAs to your ads",
+                    "verification": "Review competitor ads via Ad Preview tool, test new ad variations"
+                  }
+                ]
+              },
+              "tools": ["CTR columns", "Ad Preview Tool", "RSA combinations report", "A/B testing"]
+            },
+            {
+              "id": "p3-3-2",
+              "name": "Ad Relevance",
+              "parentId": "p3-3",
+              "priority": "must_know_cold",
+              "category": "quality_components",
+              "definition": "A Quality Score component measuring how closely your ad content matches the intent behind a user's search. High ad relevance indicates your ad text directly addresses what users searching this keyword are looking for.",
+              "adsContext": "Ad Relevance evaluates keyword-to-ad alignment. If someone searches 'red running shoes' and your ad talks about 'athletic footwear,' relevance suffers. Tight ad group structure (few related keywords per ad group) enables highly relevant ad copy for each keyword theme.",
+              "tscRelevance": "TSCs frequently recommend restructuring ad groups for better relevance. The classic symptom is an ad group with 100+ diverse keywords and generic ads trying to cover all of them, resulting in poor relevance for each.",
+              "keyDetails": [
+                "Keyword-to-ad matching: Does the ad text address the search intent implied by the keyword?",
+                "Include keywords: Ads containing the keyword (or close variants) in headlines typically show higher relevance",
+                "Ad group structure: Tight themes allow specific ad copy; broad ad groups force generic messaging",
+                "Ratings: Above Average, Average, Below Average",
+                "Dynamic insertion: Keyword insertion {KeyWord:Default} can help but isn't a substitute for themed ad groups",
+                "RSA considerations: Multiple headlines increase chance of relevant combination for each query"
+              ],
+              "interviewQuestions": [
+                "How does ad group structure impact Ad Relevance scores?",
+                "A client has one ad group with 200 keywords and generic ads. What's your recommendation?",
+                "Besides including keywords in ads, what else affects Ad Relevance?"
+              ],
+              "sqlConnection": "Ad relevance issues can be identified by analyzing which ad groups have diverse keyword themes. SQL can cluster keywords by similarity to find restructuring opportunities.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Ad Relevance Below Average across multiple keywords",
+                  "Same ad serving for very different keywords",
+                  "RSAs showing poor asset combinations"
+                ],
+                "diagnosticQuestions": [
+                  "How many keywords are in the ad group?",
+                  "Do the ads include primary keywords in headlines?",
+                  "Are the keywords in this ad group thematically related?",
+                  "What does the RSA combinations report show?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Too many diverse keywords in one ad group",
+                    "probability": "high",
+                    "resolution": "Split ad group by theme: group similar keywords together, write specific ads for each theme",
+                    "verification": "Check keyword count per ad group; ideally 5-20 tightly themed keywords"
+                  },
+                  {
+                    "issue": "Ad copy doesn't mention keyword or related terms",
+                    "probability": "high",
+                    "resolution": "Include primary keyword in at least 2-3 RSA headlines; ensure descriptions reference the keyword theme",
+                    "verification": "Check ad headlines for keyword presence; review RSA strength indicator"
+                  }
+                ]
+              },
+              "tools": ["RSA combinations report", "Ad Strength", "Keyword Insertion", "Google Ads Editor (restructuring)"]
+            },
+            {
+              "id": "p3-3-3",
+              "name": "Landing Page Experience",
+              "parentId": "p3-3",
+              "priority": "must_know_cold",
+              "category": "quality_components",
+              "definition": "A Quality Score component evaluating how relevant, useful, and user-friendly your landing page is for users who click your ad. Google assesses content relevance, page speed (Core Web Vitals), mobile-friendliness, navigation, and trustworthiness.",
+              "adsContext": "Landing Page Experience ensures users find what they expect after clicking. Google measures actual page experience signals including load time, interactivity, visual stability (Core Web Vitals), plus content relevance to the ad/keyword. Poor landing pages waste ad spend and user trust.",
+              "tscRelevance": "TSCs often find landing page issues causing Quality Score problems. This is where technical and marketing optimization converge. Recommendations involve both content relevance AND technical performance.",
+              "keyDetails": [
+                "Core Web Vitals: LCP (Largest Contentful Paint) <2.5s, FID (First Input Delay) <100ms, CLS (Cumulative Layout Shift) <0.1",
+                "Mobile-friendly: Page must render properly on mobile devices; use responsive design",
+                "Content relevance: Landing page should directly address the keyword/ad promise - don't send all traffic to homepage",
+                "Trust signals: Secure (HTTPS), clear contact info, privacy policy, testimonials",
+                "Navigation: Easy to use, clear next steps, minimal intrusive interstitials",
+                "Ratings: Above Average, Average, Below Average"
+              ],
+              "interviewQuestions": [
+                "What are the Core Web Vitals and why do they matter for Google Ads?",
+                "A client's landing page has great content but Landing Page Experience is Below Average. What would you check?",
+                "How would you diagnose a landing page experience problem?"
+              ],
+              "sqlConnection": "Landing page performance can be correlated with Quality Score at the URL level. SQL can identify low-performing landing pages by aggregating QS metrics.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Landing Page Experience Below Average",
+                  "Good ad relevance and CTR but still low QS",
+                  "Mobile-specific performance issues"
+                ],
+                "diagnosticQuestions": [
+                  "What do Core Web Vitals metrics show?",
+                  "Is the page mobile-friendly?",
+                  "Does the landing page content match the ad/keyword intent?",
+                  "Are there interstitials or pop-ups blocking content?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Poor Core Web Vitals (slow load, layout shift)",
+                    "probability": "high",
+                    "resolution": "Optimize images, reduce JavaScript, use CDN, lazy load below-fold content, fix layout shifts",
+                    "verification": "Run PageSpeed Insights, check Core Web Vitals report in Search Console"
+                  },
+                  {
+                    "issue": "Landing page not relevant to keyword/ad",
+                    "probability": "high",
+                    "resolution": "Create dedicated landing pages for key themes; don't send all traffic to homepage",
+                    "verification": "Manually check: does the landing page immediately address the keyword search intent?"
+                  },
+                  {
+                    "issue": "Not mobile-friendly",
+                    "probability": "medium",
+                    "resolution": "Implement responsive design, test on multiple devices, fix touch targets and font sizes",
+                    "verification": "Use Mobile-Friendly Test tool, test on actual mobile devices"
+                  }
+                ]
+              },
+              "tools": ["PageSpeed Insights", "Mobile-Friendly Test", "Core Web Vitals report", "Search Console", "Lighthouse"]
+            }
+          ]
+        },
+        {
+          "id": "p3-4",
+          "name": "Ad Creative & Extensions",
+          "parentId": "phase-3",
+          "priority": "must_know_cold",
+          "category": "ad_formats",
+          "definition": "The ad content shown to users including Responsive Search Ads (RSAs), ad extensions/assets that enhance ads with additional information, and how these elements contribute to Ad Rank and user engagement.",
+          "adsContext": "Modern Search ads are Responsive Search Ads (RSAs) where advertisers provide up to 15 headlines and 4 descriptions, and Google's ML assembles the best combination for each auction. Ad extensions (now called 'assets') add additional information like sitelinks, callouts, and phone numbers, improving CTR and Ad Rank at no extra cost per click.",
+          "tscRelevance": "TSCs help optimize RSAs for Ad Strength and combination effectiveness, troubleshoot extension disapprovals, and explain how extensions impact Ad Rank. Understanding RSA best practices and extension types is essential.",
+          "keyDetails": [
+            "RSAs: 15 headlines (30 char), 4 descriptions (90 char) provided; Google ML selects best combinations per auction",
+            "Ad Strength: Google's rating of RSA quality (Poor → Excellent) based on headline/description relevance, uniqueness, and keyword inclusion",
+            "Extensions/Assets: Sitelinks, Callouts, Structured Snippets, Call, Location, Price, Promotion, Image",
+            "Extension Ad Rank impact: Extensions improve Ad Rank without increasing CPC - it's free performance boost",
+            "Auction-time assembly: RSA combinations selected at auction time based on query, device, user signals",
+            "Minimum RSAs: At least one RSA required per ad group; 3+ RSAs recommended for optimal rotation"
+          ],
+          "interviewQuestions": [
+            "What's the structure of a Responsive Search Ad and how does Google select which elements to show?",
+            "How do ad extensions impact Ad Rank and actual CPC?",
+            "A client's RSA has 'Poor' Ad Strength. How would you improve it?"
+          ],
+          "sqlConnection": "RSA performance can be analyzed by asset (headline/description) to identify top performers. Extension click data shows which extensions drive engagement.",
+          "troubleshooting": {
+            "symptoms": [
+              "RSA showing same combination repeatedly",
+              "Ad Strength stuck at 'Poor' or 'Average'",
+              "Extensions not showing despite being eligible",
+              "Low CTR on RSAs"
+            ],
+            "diagnosticQuestions": [
+              "How many unique headlines and descriptions are provided?",
+              "Are headlines sufficiently different from each other?",
+              "What is the Ad Strength rating and recommendations?",
+              "Are all relevant extension types enabled?"
+            ],
+            "causes": [
+              {
+                "issue": "Too few or too similar headlines/descriptions",
+                "probability": "high",
+                "resolution": "Add more unique headlines (aim for 10+), include keywords in 3-5 headlines, vary messaging angles",
+                "verification": "Check RSA editor for headline count and uniqueness warnings"
+              },
+              {
+                "issue": "Extensions not approved or below Ad Rank threshold",
+                "probability": "medium",
+                "resolution": "Review extension status; ensure all extensions approved. Extensions show only when Ad Rank is high enough.",
+                "verification": "Check Assets tab for approval status; higher positions more likely to show extensions"
+              },
+              {
+                "issue": "RSA pinning limiting Google's optimization",
+                "probability": "medium",
+                "resolution": "Avoid pinning unless necessary; pinning restricts ML's ability to find optimal combinations",
+                "verification": "Review RSA settings for pinned headlines/descriptions"
+              }
+            ]
+          },
+          "tools": ["RSA Editor", "Ad Strength", "Assets tab", "Combinations report", "Asset performance ratings"],
+          "children": [
+            {
+              "id": "p3-4-1",
+              "name": "Responsive Search Ads (RSAs)",
+              "parentId": "p3-4",
+              "priority": "must_know_cold",
+              "category": "ad_formats",
+              "definition": "Google's primary Search ad format where advertisers provide multiple headlines (up to 15) and descriptions (up to 4), and Google's machine learning automatically tests and shows the best-performing combinations for each query and user.",
+              "adsContext": "RSAs replaced Expanded Text Ads (ETAs) as the standard Search ad format in 2022. The ML system tests combinations to optimize CTR, testing which headlines work best together and for which queries. Ad Strength provides guidance on asset quality and variety.",
+              "tscRelevance": "TSCs help clients optimize RSAs by improving Ad Strength, understanding combination reports, and avoiding common mistakes like similar headlines or excessive pinning.",
+              "keyDetails": [
+                "Structure: Up to 15 headlines (30 chars each), up to 4 descriptions (90 chars each)",
+                "Minimum requirements: 3 headlines and 2 descriptions required",
+                "Display: Up to 3 headlines and 2 descriptions shown at once (varies by device/format)",
+                "ML optimization: Google tests 43,680 possible combinations (15×14×13 headlines × 4×3 descriptions)",
+                "Pinning: Can pin specific assets to positions, but limits ML optimization",
+                "Ad Strength ratings: Poor, Average, Good, Excellent - aim for 'Good' or better"
+              ],
+              "interviewQuestions": [
+                "How many possible RSA combinations exist with 15 headlines and 4 descriptions?",
+                "When would pinning RSA headlines be appropriate vs harmful?",
+                "A client's RSAs have Excellent Ad Strength but low CTR. What would you investigate?"
+              ],
+              "sqlConnection": "Asset-level reporting shows impressions and performance for individual headlines/descriptions, enabling data-driven optimization.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Ad Strength below 'Good'",
+                  "Certain headlines never showing",
+                  "RSA CTR declining over time",
+                  "Combinations report shows limited testing"
+                ],
+                "diagnosticQuestions": [
+                  "Are there enough unique headlines covering different angles?",
+                  "Do headlines include target keywords?",
+                  "Is pinning being overused?",
+                  "What does the asset performance column show?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Headlines too similar limiting combination variety",
+                    "probability": "high",
+                    "resolution": "Create headlines with different angles: features, benefits, CTAs, questions, numbers, brand, urgency",
+                    "verification": "Review headlines for variety; Ad Strength will flag similarity"
+                  },
+                  {
+                    "issue": "No keywords in headlines",
+                    "probability": "high",
+                    "resolution": "Include primary keywords in 3-5 headlines for relevance; use in position 1 headlines",
+                    "verification": "Check if any headlines contain ad group's primary keywords"
+                  },
+                  {
+                    "issue": "Excessive pinning preventing optimization",
+                    "probability": "medium",
+                    "resolution": "Only pin when legal/compliance requires it; otherwise let ML optimize",
+                    "verification": "Review RSA settings; remove pins unless absolutely necessary"
+                  }
+                ]
+              },
+              "tools": ["RSA Editor", "Ad Strength indicator", "Asset performance (Columns)", "Combinations report"]
+            },
+            {
+              "id": "p3-4-2",
+              "name": "Ad Extensions (Assets)",
+              "parentId": "p3-4",
+              "priority": "must_know_cold",
+              "category": "ad_formats",
+              "definition": "Additional information and links that enhance your text ads, making them more prominent and useful. Extensions include sitelinks, callouts, structured snippets, call, location, price, promotion, and image assets. They improve Ad Rank without increasing CPC.",
+              "adsContext": "Extensions expand ad real estate and provide more reasons to click. They directly impact Ad Rank (part of the formula) and improve CTR by 10-15% on average. Extensions are free - you don't pay extra when someone clicks an extension vs the main ad.",
+              "tscRelevance": "TSCs ensure clients have all relevant extensions enabled and troubleshoot extension disapprovals. Extensions are a quick win for Ad Rank improvement without increasing bids.",
+              "keyDetails": [
+                "Sitelinks: Additional links to specific pages (4-6 recommended); 25 char title, 35 char description ×2",
+                "Callouts: Short benefit highlights (25 chars); show as comma-separated list",
+                "Structured Snippets: Category:values format (Brands, Services, Types, etc.)",
+                "Call extensions: Phone number shown; can schedule hours",
+                "Location extensions: Shows address/map; requires Google Business Profile link",
+                "Price extensions: Product/service pricing in card format",
+                "Promotion extensions: Special offers with occasion tags (Black Friday, etc.)",
+                "Image extensions: Visual image alongside text ad"
+              ],
+              "interviewQuestions": [
+                "List the main extension types and when you'd use each.",
+                "How do extensions affect Ad Rank calculation? Do you pay more when they show?",
+                "A client's extensions are eligible but rarely showing. What could cause this?"
+              ],
+              "sqlConnection": "Extension performance data shows clicks by extension type. SQL analysis can identify which extensions drive engagement and conversion value.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Extensions not showing in ads",
+                  "Extension disapproved",
+                  "Low extension clickthrough rate",
+                  "Location extension showing wrong address"
+                ],
+                "diagnosticQuestions": [
+                  "What is the extension approval status?",
+                  "Is Ad Rank high enough for extensions to show?",
+                  "Are extensions relevant to the ad groups/campaigns they're assigned to?",
+                  "Is Google Business Profile correctly linked (for location)?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Ad Rank too low for extensions to display",
+                    "probability": "high",
+                    "resolution": "Extensions only show when Ad Rank is strong enough. Improve bid, Quality Score, or both.",
+                    "verification": "Higher positions show extensions more often; check position and impression share"
+                  },
+                  {
+                    "issue": "Extension disapproved for policy violation",
+                    "probability": "medium",
+                    "resolution": "Review disapproval reason in Assets tab; edit to comply with policy",
+                    "verification": "Check extension status column for disapproval reason"
+                  },
+                  {
+                    "issue": "Location extension not linked to correct Google Business Profile",
+                    "probability": "medium",
+                    "resolution": "Verify Google Business Profile connection in Linked accounts; ensure correct location selected",
+                    "verification": "Check Linked accounts > Google Business Profile settings"
+                  }
+                ]
+              },
+              "tools": ["Assets tab", "Google Business Profile", "Extension reports", "Policy Manager"]
+            }
+          ]
+        },
+        {
+          "id": "p3-5",
+          "name": "Ad Disapprovals & Policy",
+          "parentId": "phase-3",
+          "priority": "must_know_cold",
+          "category": "policy_compliance",
+          "definition": "The policy framework governing what ads can say and promote, including the review process, common disapproval reasons, appeal procedures, and compliance requirements across restricted industries.",
+          "adsContext": "All Google Ads undergo automated and manual policy review. Ads can be disapproved for content issues (what the ad says), destination issues (landing page problems), or business practices (what's being advertised). Repeated violations can lead to account suspension.",
+          "tscRelevance": "TSCs handle policy-related tickets daily: explaining disapprovals, guiding appeals, and helping clients comply with industry-specific restrictions. Understanding policy enforcement is essential for technical support.",
+          "keyDetails": [
+            "Review process: Automated ML review (seconds) + human review for flagged cases (1-2 business days)",
+            "Common disapprovals: Trademark violations, misleading claims, restricted content, destination mismatch, malware",
+            "Restricted industries: Healthcare/pharma, financial services, alcohol, gambling - require certification or have geo restrictions",
+            "Appeal process: Request review in Ads UI → Google reviews → Approved or upheld disapproval",
+            "Account-level impact: Repeated violations can lead to warnings, then account suspension",
+            "Policy updates: Google regularly updates policies; existing ads may be re-reviewed"
+          ],
+          "interviewQuestions": [
+            "A client's ad is disapproved for 'Misleading content.' Walk me through how you'd help them.",
+            "What's the difference between a disapproved ad and a suspended account?",
+            "Name three restricted advertising categories and explain the requirements for each."
+          ],
+          "sqlConnection": "Policy status can be tracked in bulk via API/Editor exports. SQL analysis can identify patterns in disapprovals by ad group, campaign, or time period.",
+          "troubleshooting": {
+            "symptoms": [
+              "Ad disapproved - not running",
+              "Appeal denied without clear explanation",
+              "Ads approved then later disapproved",
+              "Account suspension warning"
+            ],
+            "diagnosticQuestions": [
+              "What is the specific disapproval reason shown?",
+              "Does the ad or landing page contain the flagged content?",
+              "Is this a restricted industry requiring certification?",
+              "How many policy violations has the account had recently?"
+            ],
+            "causes": [
+              {
+                "issue": "Trademark used in ad text without authorization",
+                "probability": "high",
+                "resolution": "Remove trademark from ad text, or apply for trademark authorization if you're authorized reseller/affiliate",
+                "verification": "Review ad text for competitor brand names; check trademark policy"
+              },
+              {
+                "issue": "Landing page doesn't match ad content",
+                "probability": "high",
+                "resolution": "Ensure landing page delivers on ad promises; ad and landing page must align",
+                "verification": "Manually check landing page for content matching ad claims"
+              },
+              {
+                "issue": "Restricted industry without proper certification",
+                "probability": "medium",
+                "resolution": "Apply for required certification (healthcare, financial services, etc.) via Google Ads settings",
+                "verification": "Check if business category requires certification; apply if eligible"
+              },
+              {
+                "issue": "Malware or unwanted software on landing page",
+                "probability": "medium",
+                "resolution": "Scan and clean landing page/site; resubmit for review once clean",
+                "verification": "Use Google Safe Browsing tool, check Search Console for security issues"
+              }
+            ]
+          },
+          "tools": ["Policy Manager", "Ad status column", "Appeal request", "Trademark authorization form", "Google Safe Browsing"]
+        }
+      ]
     }
   ],
   "crossCutting": {
