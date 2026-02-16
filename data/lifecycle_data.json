@@ -1,0 +1,754 @@
+{
+  "meta": {
+    "title": "Google Ads Lifecycle",
+    "version": "2.0",
+    "lastUpdated": "2026-02-15",
+    "interviewDate": "2026-02-19",
+    "description": "Comprehensive study guide for Google gTech Ads Technical Solutions Consultant interview covering the complete Google Ads lifecycle from account setup through optimization and troubleshooting"
+  },
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Account Setup",
+      "phaseNumber": 1,
+      "priority": "know_well",
+      "category": "digital_marketing",
+      "funnelStage": "Awareness → Loyalty",
+      "summary": "Creating and structuring Google Ads accounts with proper hierarchy, campaign types, and pricing models",
+      "adsContext": "Account structure determines reporting granularity, budget allocation flexibility, and optimization capabilities. Poor structure leads to limited control, wasted spend, and difficulty troubleshooting performance issues.",
+      "dataFlowIn": "Business goals, budget, target audience, industry vertical, geographic scope",
+      "dataFlowOut": "Configured account ready for targeting setup with campaigns, ad groups, and billing established",
+      "children": [
+        {
+          "id": "p1-1",
+          "name": "Account Hierarchy",
+          "parentId": "phase-1",
+          "priority": "know_well",
+          "category": "account_structure",
+          "definition": "The three-tier organizational structure of Google Ads consisting of Account, Campaign, and Ad Group levels, each with distinct settings and controls that cascade down the hierarchy.",
+          "adsContext": "Proper hierarchy enables granular budget control, targeted reporting, and efficient optimization. TSCs frequently troubleshoot issues caused by settings conflicts between hierarchy levels.",
+          "tscRelevance": "TSCs must understand hierarchy to diagnose why ads aren't showing, budgets aren't spending, or performance differs from expectations. Many support tickets stem from misunderstanding which level controls what setting.",
+          "keyDetails": [
+            "Account level: Billing, user access, linked accounts (GA4, Merchant Center), time zone, currency (cannot be changed after creation)",
+            "Campaign level: Budget, bid strategy, networks, locations, languages, start/end dates, ad rotation",
+            "Ad Group level: Keywords, audiences, ads, bids (when using manual bidding), ad group default bid",
+            "Settings at lower levels can override higher levels (e.g., ad group bid overrides campaign default)",
+            "MCC (Manager Account) sits above individual accounts for agency/multi-account management"
+          ],
+          "interviewQuestions": [
+            "A client says their ads stopped showing. Walk me through how you'd diagnose whether it's an account, campaign, or ad group level issue.",
+            "Explain why a properly structured account hierarchy matters for optimization.",
+            "A client wants to change their account currency. What do you tell them and why?"
+          ],
+          "sqlConnection": "Account hierarchy data often needs to be joined across tables (account → campaign → ad_group) for reporting. Understanding foreign key relationships mirrors the hierarchy.",
+          "troubleshooting": {
+            "symptoms": [
+              "Ads not showing despite active status",
+              "Budget not spending as expected",
+              "Targeting settings conflicting",
+              "Unable to find specific settings"
+            ],
+            "diagnosticQuestions": [
+              "At which hierarchy level is the problematic setting configured?",
+              "Are there conflicting settings between levels?",
+              "Is the account, campaign, or ad group paused/removed?",
+              "What is the account's billing status?"
+            ],
+            "causes": [
+              {
+                "issue": "Account suspended for billing issues",
+                "probability": "high",
+                "resolution": "Verify payment method, resolve outstanding balance, request account review if needed",
+                "verification": "Check Account Status in account settings, verify billing history for failed payments"
+              },
+              {
+                "issue": "Campaign paused but ad group active",
+                "probability": "high",
+                "resolution": "Enable campaign - ad groups inherit campaign status",
+                "verification": "Check campaign status column, filter by 'All campaigns' not 'Enabled only'"
+              },
+              {
+                "issue": "Time zone mismatch causing reporting confusion",
+                "probability": "medium",
+                "resolution": "Clarify that account time zone affects when budgets reset and how data is timestamped",
+                "verification": "Check account time zone vs client's local time and expected behavior"
+              }
+            ]
+          },
+          "tools": ["Google Ads UI", "Google Ads Editor", "Google Ads API", "Change History"],
+          "children": [
+            {
+              "id": "p1-1-1",
+              "name": "Account Level (CID)",
+              "parentId": "p1-1",
+              "priority": "know_well",
+              "category": "account_structure",
+              "definition": "The top level of Google Ads hierarchy identified by a unique Customer ID (CID), containing account-wide settings that apply to all campaigns including billing, user access, and linked services.",
+              "adsContext": "The CID is the primary identifier for all API calls, support tickets, and billing. Account-level settings like currency and time zone are permanent after creation, making initial setup critical.",
+              "tscRelevance": "TSCs use CID to look up accounts, verify ownership, and access diagnostic tools. Understanding account-level limitations (can't change currency/time zone) prevents incorrect troubleshooting paths.",
+              "keyDetails": [
+                "CID format: XXX-XXX-XXXX (10 digits with hyphens)",
+                "Billing: Payment methods, invoicing settings, promotional credits",
+                "Access: User email permissions (Admin, Standard, Read-only, Billing-only)",
+                "Linked accounts: Google Analytics 4, Merchant Center, YouTube, Search Console",
+                "Account status: Active, Suspended, Cancelled, Pending"
+              ],
+              "interviewQuestions": [
+                "What's the difference between account suspension and account cancellation?",
+                "A client can't link their Google Analytics to Google Ads. What could be wrong?"
+              ],
+              "sqlConnection": "CID serves as the primary key for account-level tables and foreign key in campaign/ad_group tables",
+              "troubleshooting": {
+                "symptoms": [
+                  "Cannot access account",
+                  "Linking to GA4/Merchant Center failing",
+                  "Promotional credits not applying",
+                  "Billing alerts or suspensions"
+                ],
+                "diagnosticQuestions": [
+                  "What is the exact CID?",
+                  "Who has admin access to the account?",
+                  "What is the current account status?",
+                  "Are there any policy violations?"
+                ],
+                "causes": [
+                  {
+                    "issue": "User lacks admin access to both accounts for linking",
+                    "probability": "high",
+                    "resolution": "Ensure user has admin access to both Google Ads and the target account (GA4/MC)",
+                    "verification": "Check user permissions in both platforms, verify email matches exactly"
+                  },
+                  {
+                    "issue": "Account suspended for policy violation",
+                    "probability": "medium",
+                    "resolution": "Review policy violation email, address the violation, submit appeal through account",
+                    "verification": "Check account status and any notification banners in the UI"
+                  }
+                ]
+              },
+              "tools": ["Account Access settings", "Linked Accounts", "Billing & Payments", "Policy Manager"]
+            },
+            {
+              "id": "p1-1-2",
+              "name": "Campaign Level",
+              "parentId": "p1-1",
+              "priority": "know_well",
+              "category": "account_structure",
+              "definition": "The middle tier of hierarchy where budget allocation, bid strategies, network selection, geographic targeting, and scheduling are configured. Each campaign should align with a specific marketing objective.",
+              "adsContext": "Campaign-level decisions directly impact spend efficiency and reach. Mixing objectives in one campaign (e.g., brand and performance) limits optimization algorithms and muddles reporting.",
+              "tscRelevance": "Most troubleshooting involves campaign-level settings: budget not spending, ads showing in wrong locations, bid strategy underperforming. TSCs must quickly identify which campaign setting is causing issues.",
+              "keyDetails": [
+                "Budget: Daily budget (may overspend up to 2x daily but not monthly), shared budgets across campaigns",
+                "Bid strategy: Manual CPC, Maximize Conversions, Target CPA, Target ROAS, Maximize Clicks, etc.",
+                "Networks: Search Network, Display Network, Search Partners, YouTube",
+                "Locations: Include/exclude geographic areas, location options (presence vs interest)",
+                "Schedule: Ad scheduling (dayparting), campaign start/end dates"
+              ],
+              "interviewQuestions": [
+                "A client's daily budget is $100 but they spent $180 yesterday. Is this a bug?",
+                "When would you recommend separating campaigns vs keeping targeting in one campaign?",
+                "Explain the difference between 'Presence' and 'Presence or Interest' location targeting."
+              ],
+              "sqlConnection": "Campaign-level metrics aggregate ad_group data. SQL queries often GROUP BY campaign_id for budget analysis.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Budget depleting too quickly or too slowly",
+                  "Ads showing in wrong geographic areas",
+                  "Bid strategy not meeting targets",
+                  "Ads running at unexpected times"
+                ],
+                "diagnosticQuestions": [
+                  "What bid strategy is in use and what are its targets?",
+                  "What are the location targeting settings (presence vs interest)?",
+                  "Is there an ad schedule limiting delivery?",
+                  "How long has the current bid strategy been running (learning period)?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Location targeting set to 'Interest' showing ads to non-local users",
+                    "probability": "high",
+                    "resolution": "Change to 'Presence' only for local businesses",
+                    "verification": "Check Geographic report, look for clicks from excluded areas"
+                  },
+                  {
+                    "issue": "Bid strategy in learning period after recent changes",
+                    "probability": "high",
+                    "resolution": "Allow 1-2 weeks for learning, avoid major changes during this period",
+                    "verification": "Check bid strategy status column, look for 'Learning' label"
+                  },
+                  {
+                    "issue": "Budget limited causing missed opportunities",
+                    "probability": "medium",
+                    "resolution": "Increase budget or improve efficiency through targeting/bid adjustments",
+                    "verification": "Check 'Limited by budget' status, review Search Impression Share metrics"
+                  }
+                ]
+              },
+              "tools": ["Campaign Settings", "Bid Strategy Report", "Geographic Report", "Ad Schedule"]
+            },
+            {
+              "id": "p1-1-3",
+              "name": "Ad Group Level",
+              "parentId": "p1-1",
+              "priority": "know_well",
+              "category": "account_structure",
+              "definition": "The lowest organizational tier containing keywords/targeting criteria, ads, and audiences that share a common theme. Ad groups should be tightly themed for maximum relevance and Quality Score.",
+              "adsContext": "Ad group structure directly impacts Quality Score through keyword-ad-landing page relevance. Poorly organized ad groups lead to low Quality Score, higher CPCs, and worse ad positions.",
+              "tscRelevance": "TSCs frequently help clients restructure ad groups for better performance. Understanding SKAG (Single Keyword Ad Groups) vs themed ad groups trade-offs is essential for recommendations.",
+              "keyDetails": [
+                "Contains keywords (Search), placements/audiences (Display), or product groups (Shopping)",
+                "Ad group default bid applies when keyword-level bids aren't set",
+                "Multiple ads per ad group for A/B testing (min 3 recommended)",
+                "Audience targeting can be observation (bid adjustment) or targeting (restriction)",
+                "Theme tightly: one product/service per ad group for relevance"
+              ],
+              "interviewQuestions": [
+                "How many ad groups and keywords would you recommend for a new Search campaign?",
+                "Explain the relationship between ad group structure and Quality Score.",
+                "What's the difference between audience 'Observation' and 'Targeting' modes?"
+              ],
+              "sqlConnection": "Ad group is the JOIN point between campaign settings and keyword/ad performance. Queries often aggregate at ad_group level for thematic analysis.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Low Quality Score across keywords",
+                  "Ads not matching search intent",
+                  "High CPC despite good CTR",
+                  "Audience targeting too broad or narrow"
+                ],
+                "diagnosticQuestions": [
+                  "How many keywords are in this ad group? Are they tightly themed?",
+                  "Do the ads include the primary keywords in headlines?",
+                  "Is audience set to Observation or Targeting?",
+                  "What is the landing page relevance score?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Too many unrelated keywords in one ad group",
+                    "probability": "high",
+                    "resolution": "Split into themed ad groups, ensure ads match each theme's keywords",
+                    "verification": "Check keyword count per ad group, verify ad copy includes keywords"
+                  },
+                  {
+                    "issue": "Audience set to Targeting limiting reach",
+                    "probability": "medium",
+                    "resolution": "Change to Observation mode to broaden reach while still collecting audience data",
+                    "verification": "Check audience settings, compare impressions before/after change"
+                  }
+                ]
+              },
+              "tools": ["Ad Group Settings", "Keywords tab", "Audiences tab", "Ads & Assets"]
+            }
+          ]
+        },
+        {
+          "id": "p1-2",
+          "name": "Campaign Types",
+          "parentId": "phase-1",
+          "priority": "know_well",
+          "category": "campaign_management",
+          "definition": "The different campaign formats available in Google Ads, each designed for specific marketing objectives, networks, and ad formats. Choice of campaign type determines available features and optimization options.",
+          "adsContext": "Selecting the right campaign type is foundational - it determines targeting capabilities, creative options, and how the algorithm optimizes. TSCs must match campaign types to business objectives.",
+          "tscRelevance": "Clients often use the wrong campaign type for their goals or don't understand why one type performs differently than another. TSCs guide campaign type selection and troubleshoot type-specific issues.",
+          "keyDetails": [
+            "Search: Text ads on Google Search and Search Partners, keyword-triggered",
+            "Display: Visual ads across Google Display Network (3M+ sites/apps)",
+            "Video: YouTube and video partner sites, various formats (skippable, non-skippable, bumper)",
+            "Shopping: Product listings from Merchant Center feed, visual product ads",
+            "Performance Max: AI-driven cross-channel campaigns using all Google inventory",
+            "App: Drive app installs and engagement across Search, Display, YouTube, Play",
+            "Demand Gen: Visually rich ads across YouTube, Discover, Gmail"
+          ],
+          "interviewQuestions": [
+            "A client has a limited budget. Which campaign type would you recommend first and why?",
+            "Explain the key differences between Smart Shopping and Performance Max.",
+            "When would you recommend Display vs Search campaigns?"
+          ],
+          "sqlConnection": "Campaign type affects which metrics tables are relevant (search_query_report vs placement_report) and which columns are populated.",
+          "troubleshooting": {
+            "symptoms": [
+              "Campaign not meeting KPIs despite optimization",
+              "Wrong ad format showing for objective",
+              "Limited reach or conversions",
+              "Client confused about campaign capabilities"
+            ],
+            "diagnosticQuestions": [
+              "What is the client's primary business objective?",
+              "Which campaign type is currently in use?",
+              "Is there sufficient conversion data for Smart Bidding?",
+              "Does the creative meet campaign type requirements?"
+            ],
+            "causes": [
+              {
+                "issue": "Using Display for direct response when Search is more appropriate",
+                "probability": "medium",
+                "resolution": "Add Search campaign for high-intent keywords, use Display for remarketing/awareness",
+                "verification": "Compare conversion rates by campaign type, analyze user intent"
+              },
+              {
+                "issue": "Performance Max cannibalizing Search campaigns",
+                "probability": "medium",
+                "resolution": "Use brand exclusions in PMax, analyze asset group performance vs Search",
+                "verification": "Check Insights tab for search term overlap, compare before/after metrics"
+              }
+            ]
+          },
+          "tools": ["Campaign Creation Wizard", "Campaign Type Selector", "Performance Planner"],
+          "children": [
+            {
+              "id": "p1-2-1",
+              "name": "Search Campaigns",
+              "parentId": "p1-2",
+              "priority": "know_well",
+              "category": "campaign_types",
+              "definition": "Text-based ads triggered by user search queries on Google Search and Search Partner sites. The core of intent-based marketing, capturing users actively searching for products/services.",
+              "adsContext": "Search campaigns capture high-intent traffic - users actively looking for solutions. Quality Score, keyword match types, and ad relevance are critical performance factors unique to Search.",
+              "tscRelevance": "Most common campaign type for troubleshooting. TSCs diagnose keyword performance, match type issues, Quality Score problems, and search term relevance daily.",
+              "keyDetails": [
+                "Match types: Broad, Phrase, Exact (Broad Match Modifier deprecated 2021)",
+                "Ad formats: Responsive Search Ads (RSA) - up to 15 headlines, 4 descriptions",
+                "Search Partners: Extends reach to non-Google search sites (can be toggled)",
+                "Quality Score: 1-10 rating based on CTR, ad relevance, landing page experience",
+                "Ad Rank = Bid × Quality Score × Expected impact of extensions"
+              ],
+              "interviewQuestions": [
+                "Explain how Quality Score impacts CPC and ad position.",
+                "When would you use Broad Match vs Phrase Match?",
+                "A client's search campaign has high impressions but low CTR. What would you investigate?"
+              ],
+              "sqlConnection": "Search query reports (SQR) join search_terms to keywords for analysis. N-gram analysis via SQL helps find negative keyword opportunities.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Low impression share despite adequate budget",
+                  "High CPC compared to estimates",
+                  "Irrelevant search queries triggering ads",
+                  "Quality Score declining over time"
+                ],
+                "diagnosticQuestions": [
+                  "What are the Quality Score components (CTR, relevance, landing page)?",
+                  "Which match types are in use?",
+                  "What does the search terms report show?",
+                  "Are there sufficient negative keywords?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Broad match keywords triggering irrelevant queries",
+                    "probability": "high",
+                    "resolution": "Add negative keywords, consider phrase/exact match for core terms",
+                    "verification": "Review search terms report, check for irrelevant query patterns"
+                  },
+                  {
+                    "issue": "Low Quality Score increasing CPCs",
+                    "probability": "high",
+                    "resolution": "Improve ad relevance (include keywords in ads), optimize landing page speed/content",
+                    "verification": "Check QS components individually, test landing page with PageSpeed Insights"
+                  },
+                  {
+                    "issue": "Ad strength 'Poor' limiting RSA performance",
+                    "probability": "medium",
+                    "resolution": "Add more unique headlines/descriptions, include keywords, improve variety",
+                    "verification": "Check ad strength indicator, review headline/description recommendations"
+                  }
+                ]
+              },
+              "tools": ["Keyword Planner", "Search Terms Report", "Quality Score columns", "Ad Strength indicator"]
+            },
+            {
+              "id": "p1-2-2",
+              "name": "Display Campaigns",
+              "parentId": "p1-2",
+              "priority": "know_well",
+              "category": "campaign_types",
+              "definition": "Visual banner and responsive ads shown across the Google Display Network (GDN), reaching users on websites, apps, and Google properties like Gmail and YouTube.",
+              "adsContext": "Display excels at awareness and remarketing but has lower intent than Search. Understanding placement quality, viewability, and audience targeting is crucial for Display performance.",
+              "tscRelevance": "TSCs troubleshoot brand safety concerns (ads on inappropriate sites), viewability issues, and help clients understand why Display metrics differ from Search.",
+              "keyDetails": [
+                "Network reach: 3+ million websites and apps, 90%+ of internet users",
+                "Ad formats: Responsive Display Ads (auto-generated), uploaded image ads, HTML5",
+                "Targeting: Contextual (keywords/topics), audience (affinity/in-market), placements",
+                "Remarketing: Target users who previously visited your site",
+                "Viewability: Metrics track whether ads were actually seen (vs just served)"
+              ],
+              "interviewQuestions": [
+                "A client is concerned about brand safety on Display. What options do they have?",
+                "Explain the difference between contextual and audience targeting on Display.",
+                "Why might Display have lower CTR than Search, and is that necessarily bad?"
+              ],
+              "sqlConnection": "Placement reports show which sites/apps showed ads. SQL analysis helps identify low-quality placements to exclude.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Ads appearing on inappropriate websites",
+                  "Very low CTR compared to Search",
+                  "High impressions but no conversions",
+                  "Poor viewability rates"
+                ],
+                "diagnosticQuestions": [
+                  "Are content exclusions properly configured?",
+                  "What targeting method is in use?",
+                  "Are remarketing lists properly populated?",
+                  "What is the viewability rate?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Ads showing on low-quality placements (MFA sites)",
+                    "probability": "high",
+                    "resolution": "Review placement report, exclude poor performers, use 'Optimized targeting' carefully",
+                    "verification": "Check placement report for unusual domains, review site categories"
+                  },
+                  {
+                    "issue": "Remarketing audience too small",
+                    "probability": "medium",
+                    "resolution": "Minimum 100 users for Display, 1000 for Search. Expand membership duration or traffic.",
+                    "verification": "Check audience size in Audience Manager, verify tag is firing correctly"
+                  },
+                  {
+                    "issue": "Low viewability due to below-fold placements",
+                    "probability": "medium",
+                    "resolution": "Use viewability targeting, exclude low-viewability placements",
+                    "verification": "Add viewability columns to reporting, compare by placement"
+                  }
+                ]
+              },
+              "tools": ["Placement Report", "Content Exclusions", "Audience Manager", "Viewability metrics"]
+            },
+            {
+              "id": "p1-2-3",
+              "name": "Performance Max Campaigns",
+              "parentId": "p1-2",
+              "priority": "know_well",
+              "category": "campaign_types",
+              "definition": "AI-driven campaign type that serves ads across all Google channels (Search, Display, YouTube, Discover, Gmail, Maps) from a single campaign, using machine learning to optimize for conversions.",
+              "adsContext": "Performance Max replaces Smart Shopping and Local campaigns. It requires conversion tracking and benefits from strong signals (audience signals, high-quality assets). Less manual control but broader reach.",
+              "tscRelevance": "TSCs help clients understand PMax's 'black box' nature, troubleshoot asset performance, and address concerns about Search campaign cannibalization. This is a rapidly evolving campaign type.",
+              "keyDetails": [
+                "Asset groups: Collections of headlines, descriptions, images, videos for different themes",
+                "Audience signals: Hints to the algorithm (not hard targeting) - custom segments, remarketing, etc.",
+                "URL expansion: Can serve ads on URLs beyond those specified (toggleable)",
+                "Insights: Limited but improving - search term insights, audience insights",
+                "Requirements: Active conversion tracking, recommend 30+ conversions/month for optimization"
+              ],
+              "interviewQuestions": [
+                "A client wants to know what search terms triggered their PMax ads. What can you tell them?",
+                "How does Performance Max interact with existing Search campaigns?",
+                "What are the pros and cons of Performance Max vs manual campaign types?"
+              ],
+              "sqlConnection": "PMax has limited reporting granularity. Asset group performance and conversion data are primary analysis points.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Search campaign traffic dropping after PMax launch",
+                  "Unable to see search terms driving conversions",
+                  "Asset group performance unclear",
+                  "PMax not spending budget"
+                ],
+                "diagnosticQuestions": [
+                  "Are there brand exclusions in place for PMax?",
+                  "How many conversions is the account getting monthly?",
+                  "What audience signals are configured?",
+                  "What is the asset quality rating?"
+                ],
+                "causes": [
+                  {
+                    "issue": "PMax bidding on brand terms, stealing from Search",
+                    "probability": "high",
+                    "resolution": "Add brand exclusions to PMax (account-level setting), monitor search categories in Insights",
+                    "verification": "Check Insights > Search categories for brand terms, compare Search brand traffic before/after"
+                  },
+                  {
+                    "issue": "Insufficient conversion data for optimization",
+                    "probability": "high",
+                    "resolution": "Use micro-conversions, extend conversion window, consider value-based bidding",
+                    "verification": "Check monthly conversion volume, verify conversion tracking is accurate"
+                  },
+                  {
+                    "issue": "Low-quality assets limiting delivery",
+                    "probability": "medium",
+                    "resolution": "Improve assets to 'Good' or 'Best' rating, add more asset variety",
+                    "verification": "Check asset performance ratings in asset group details"
+                  }
+                ]
+              },
+              "tools": ["Asset Groups", "Insights tab", "Search Categories", "Audience Signals"]
+            }
+          ]
+        },
+        {
+          "id": "p1-3",
+          "name": "Full-Funnel Campaign Strategy",
+          "parentId": "phase-1",
+          "priority": "know_well",
+          "category": "strategy",
+          "definition": "An integrated approach to Google Ads that aligns campaign types with the customer journey stages from awareness through consideration to purchase, ensuring cohesive messaging and proper attribution across touchpoints.",
+          "adsContext": "Google Ads campaigns should work together as a system, not in silos. Full-funnel strategy means using upper-funnel campaigns (Display, YouTube) to drive awareness, mid-funnel (Search non-brand, Discovery) for consideration, and lower-funnel (Search brand, Shopping, Remarketing) for conversion.",
+          "tscRelevance": "TSCs help clients understand why they need campaigns across the funnel and how to attribute value appropriately. Clients often over-invest in last-click conversion campaigns and under-invest in awareness.",
+          "keyDetails": [
+            "Awareness (Top): YouTube TrueView, Display prospecting, Demand Gen - metrics: reach, video views, CPM",
+            "Consideration (Mid): Non-brand Search, Discovery, Display remarketing - metrics: engagement, site visits",
+            "Conversion (Bottom): Brand Search, Shopping, Performance Max - metrics: conversions, ROAS, CPA",
+            "Attribution models: Data-driven (recommended), last-click (outdated), position-based, linear",
+            "Budget allocation: Varies by business maturity, but 10-20% upper funnel is common guidance"
+          ],
+          "interviewQuestions": [
+            "How would you structure a full-funnel Google Ads strategy for a new e-commerce brand?",
+            "A client wants to focus only on bottom-funnel campaigns. How would you advise them?",
+            "Explain how attribution models affect how you evaluate upper-funnel campaigns."
+          ],
+          "sqlConnection": "Attribution analysis requires path-to-conversion data. SQL queries can calculate assisted conversions and attribution credit across campaigns.",
+          "troubleshooting": {
+            "symptoms": [
+              "Diminishing returns on conversion campaigns",
+              "High CPA despite optimization",
+              "Brand search declining without awareness investment",
+              "Unclear ROI on upper-funnel spend"
+            ],
+            "diagnosticQuestions": [
+              "What's the current campaign mix across funnel stages?",
+              "What attribution model is in use?",
+              "Are there audience lists passing users between funnel stages?",
+              "What's the assisted conversion count for each campaign?"
+            ],
+            "causes": [
+              {
+                "issue": "Over-reliance on last-click attribution undervaluing awareness",
+                "probability": "high",
+                "resolution": "Switch to data-driven attribution, review model comparison report",
+                "verification": "Compare attribution models in Tools > Attribution > Model Comparison"
+              },
+              {
+                "issue": "No audience handoff between funnel stages",
+                "probability": "medium",
+                "resolution": "Create remarketing lists from Display/YouTube viewers for lower-funnel targeting",
+                "verification": "Check audience manager for sequential audience lists"
+              }
+            ]
+          },
+          "tools": ["Attribution Model Comparison", "Conversion Paths", "Top Conversion Paths report"],
+          "children": []
+        },
+        {
+          "id": "p1-4",
+          "name": "Pricing Models",
+          "parentId": "phase-1",
+          "priority": "know_well",
+          "category": "billing",
+          "definition": "The different ways Google charges for ad delivery: CPC (Cost Per Click), CPM (Cost Per Thousand Impressions), CPV (Cost Per View), and CPA/Target CPA (Cost Per Acquisition). Each model aligns with different campaign objectives and bidding strategies.",
+          "adsContext": "Pricing model selection affects cash flow, budget predictability, and optimization levers. Understanding when to use each model is essential for efficient spend allocation.",
+          "tscRelevance": "TSCs help clients understand why they're being charged, reconcile billing with performance, and recommend the right pricing model for objectives. Billing confusion is a common support topic.",
+          "keyDetails": [
+            "CPC (Cost Per Click): Pay only when users click. Default for Search. Actual CPC usually below max bid.",
+            "CPM (Cost Per Thousand): Pay per 1000 impressions. Used for awareness campaigns, Display, YouTube.",
+            "CPV (Cost Per View): Pay when user watches 30 seconds or engages with video. TrueView YouTube ads.",
+            "vCPM (Viewable CPM): Pay per 1000 viewable impressions. Requires ad to be seen.",
+            "Target CPA/ROAS: Not pricing models but bid strategies that optimize toward cost/return targets."
+          ],
+          "interviewQuestions": [
+            "When would you recommend CPM bidding over CPC for a Display campaign?",
+            "A client's actual CPC is lower than their max CPC bid. Why?",
+            "Explain the difference between Target CPA as a bid strategy and CPA as a metric."
+          ],
+          "sqlConnection": "Cost metrics require understanding pricing model to calculate accurately. CPC campaigns need clicks in denominator, CPM needs impressions/1000.",
+          "troubleshooting": {
+            "symptoms": [
+              "Unexpected billing amounts",
+              "CPC higher than expected",
+              "Budget depleting faster than projected",
+              "Confusion about what triggers charges"
+            ],
+            "diagnosticQuestions": [
+              "What bidding strategy and pricing model is the campaign using?",
+              "Is there a clear understanding of what triggers a charge?",
+              "For video, are they aware of the view counting methodology?",
+              "Are enhanced CPC or other modifiers in place?"
+            ],
+            "causes": [
+              {
+                "issue": "Not understanding CPC auction dynamics",
+                "probability": "high",
+                "resolution": "Explain second-price auction: you pay just enough to beat next competitor, not your max bid",
+                "verification": "Compare avg CPC to max CPC bid, show actual CPC is typically lower"
+              },
+              {
+                "issue": "CPM campaign charged for impressions even without clicks",
+                "probability": "medium",
+                "resolution": "Clarify CPM charges for impressions regardless of engagement. Consider CPC if clicks are the goal.",
+                "verification": "Review campaign goal and whether CPM aligns with awareness objective"
+              },
+              {
+                "issue": "Enhanced CPC increasing bids beyond manual setting",
+                "probability": "medium",
+                "resolution": "Explain that eCPC can increase bids up to 30% for likely conversions. Disable if unwanted.",
+                "verification": "Check bidding strategy settings for enhanced CPC toggle"
+              }
+            ]
+          },
+          "tools": ["Billing Summary", "Bid Strategy Report", "Auction Insights"],
+          "children": [
+            {
+              "id": "p1-4-1",
+              "name": "CPC Bidding (Cost Per Click)",
+              "parentId": "p1-4",
+              "priority": "know_well",
+              "category": "pricing",
+              "definition": "The pricing model where advertisers pay only when a user clicks on their ad. The actual cost is determined by a second-price auction where you pay just enough to beat the competitor below you.",
+              "adsContext": "CPC is the foundation of Search advertising ROI. Understanding how actual CPC is calculated (Quality Score × Bid) and auction dynamics is essential for efficient spend.",
+              "tscRelevance": "TSCs frequently explain CPC calculations, help clients understand why CPC varies, and troubleshoot high CPC issues. This is fundamental to almost all Google Ads conversations.",
+              "keyDetails": [
+                "Second-price auction: Pay $0.01 more than what's needed to beat the next competitor",
+                "Actual CPC formula: (Ad Rank of advertiser below / Your Quality Score) + $0.01",
+                "Max CPC: The most you're willing to pay (bid), usually above actual CPC",
+                "Enhanced CPC (eCPC): Allows Google to increase bids up to 30% for likely converters",
+                "Average CPC varies by industry: Legal ($6+), Insurance ($3+), Retail ($1-2)"
+              ],
+              "interviewQuestions": [
+                "Walk me through how actual CPC is calculated in a Google Ads auction.",
+                "A client's CPC doubled overnight. What would you investigate?",
+                "How does Quality Score affect CPC?"
+              ],
+              "sqlConnection": "CPC analysis requires cost/clicks calculation. Segmentation by keyword, device, audience reveals CPC patterns.",
+              "troubleshooting": {
+                "symptoms": [
+                  "CPC significantly higher than keyword estimates",
+                  "CPC increased suddenly without bidding changes",
+                  "CPC varies widely across similar keywords"
+                ],
+                "diagnosticQuestions": [
+                  "What is the Quality Score for high-CPC keywords?",
+                  "Have competitors entered the auction recently?",
+                  "Are there bid modifiers (device, location, audience) inflating bids?",
+                  "What does Auction Insights show about competition?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Low Quality Score forcing higher bids to maintain position",
+                    "probability": "high",
+                    "resolution": "Improve QS components: ad relevance, expected CTR, landing page experience",
+                    "verification": "Add QS columns to keyword view, check component breakdowns"
+                  },
+                  {
+                    "issue": "New competitors increasing auction pressure",
+                    "probability": "medium",
+                    "resolution": "Review Auction Insights, consider impression share strategy vs position strategy",
+                    "verification": "Check Auction Insights for new domains, overlap rate changes"
+                  },
+                  {
+                    "issue": "Stacked bid modifiers multiplying base bid",
+                    "probability": "medium",
+                    "resolution": "Review all bid modifiers (device, location, audience, schedule) - they multiply",
+                    "verification": "Check modifiers in campaign settings, calculate total possible bid increase"
+                  }
+                ]
+              },
+              "tools": ["Keyword Planner (CPC estimates)", "Auction Insights", "Quality Score columns"]
+            },
+            {
+              "id": "p1-4-2",
+              "name": "CPM/vCPM Bidding",
+              "parentId": "p1-4",
+              "priority": "should_know",
+              "category": "pricing",
+              "definition": "Cost Per Mille (thousand impressions) pricing where advertisers pay based on ad impressions rather than clicks. vCPM (viewable CPM) charges only for impressions where the ad was actually viewable.",
+              "adsContext": "CPM is appropriate for awareness campaigns where the goal is reach rather than direct response. vCPM adds accountability for viewability, addressing concerns about paying for unseen ads.",
+              "tscRelevance": "TSCs help clients understand when CPM makes sense, troubleshoot viewability issues, and explain why CPM campaigns may have low CTR but still be valuable.",
+              "keyDetails": [
+                "CPM: Cost per 1,000 impressions regardless of viewability",
+                "vCPM: Cost per 1,000 viewable impressions (50% of ad visible for 1 second)",
+                "Best for: Brand awareness, reach campaigns, Display, YouTube mastheads",
+                "Not recommended for: Direct response, lead generation, e-commerce (use CPC/CPA)",
+                "Industry benchmark CPMs: Display $1-3, Premium YouTube $15-30"
+              ],
+              "interviewQuestions": [
+                "When would you recommend vCPM over standard CPM?",
+                "A client running CPM is upset about low CTR. How do you respond?",
+                "What makes an impression 'viewable'?"
+              ],
+              "sqlConnection": "CPM analysis requires impressions data. Viewability metrics need additional columns (viewable_impressions, measurable_impressions).",
+              "troubleshooting": {
+                "symptoms": [
+                  "High cost with low engagement",
+                  "Budget spent without clicks/conversions",
+                  "Client expects direct response from awareness campaign"
+                ],
+                "diagnosticQuestions": [
+                  "Is the campaign goal awareness or direct response?",
+                  "What is the viewability rate?",
+                  "Are expectations aligned with CPM model?",
+                  "What reach/frequency metrics are being tracked?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Wrong pricing model for direct response goal",
+                    "probability": "high",
+                    "resolution": "Switch to CPC or CPA bidding if conversions are the goal",
+                    "verification": "Clarify campaign objective, recommend appropriate model"
+                  },
+                  {
+                    "issue": "Low viewability inflating effective CPM",
+                    "probability": "medium",
+                    "resolution": "Use vCPM to pay only for viewable impressions, exclude low-viewability placements",
+                    "verification": "Check viewability rate in columns, compare CPM vs effective vCPM"
+                  }
+                ]
+              },
+              "tools": ["Reach Planner", "Viewability metrics", "Brand Lift studies"]
+            },
+            {
+              "id": "p1-4-3",
+              "name": "CPV Bidding (Cost Per View)",
+              "parentId": "p1-4",
+              "priority": "should_know",
+              "category": "pricing",
+              "definition": "Video advertising pricing model where advertisers pay when a user watches 30 seconds of video (or the full ad if shorter) or interacts with the video ad, whichever comes first.",
+              "adsContext": "CPV is specific to YouTube and video campaigns. Understanding what counts as a 'view' and how TrueView formats work is essential for video advertising ROI.",
+              "tscRelevance": "TSCs explain view counting methodology, troubleshoot discrepancies between YouTube Analytics and Google Ads views, and help optimize for view rate.",
+              "keyDetails": [
+                "View counted: 30 seconds watched OR full video if under 30 seconds OR click/engagement",
+                "TrueView In-Stream: Skippable after 5 seconds, pay only if 30+ seconds watched",
+                "TrueView Discovery: Pay when user clicks to watch (thumbnail in search/browse)",
+                "Non-skippable: CPM-based (not CPV) since all viewers are 'forced' to watch",
+                "Bumper ads: 6-second non-skippable, CPM-based"
+              ],
+              "interviewQuestions": [
+                "A client sees different view counts in Google Ads and YouTube Analytics. Explain why.",
+                "What's the difference between TrueView In-Stream and TrueView Discovery?",
+                "How do you optimize for lower CPV on YouTube?"
+              ],
+              "sqlConnection": "Video campaign analysis requires video_views, video_view_rate, video_quartile_completion metrics.",
+              "troubleshooting": {
+                "symptoms": [
+                  "High CPV compared to benchmarks",
+                  "Low view rate (high skip rate)",
+                  "View counts don't match YouTube Studio",
+                  "Budget not spending on video campaigns"
+                ],
+                "diagnosticQuestions": [
+                  "What is the view rate (views/impressions)?",
+                  "Which video format is being used?",
+                  "Is the video engaging in the first 5 seconds?",
+                  "Are targeting settings limiting reach?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Poor first 5 seconds leading to high skip rate",
+                    "probability": "high",
+                    "resolution": "Hook viewers immediately, front-load key message, test different creative openings",
+                    "verification": "Check view rate and video quartile completion rates"
+                  },
+                  {
+                    "issue": "YouTube Analytics vs Google Ads view definition mismatch",
+                    "probability": "medium",
+                    "resolution": "Explain that GA counts any play >0 seconds while Ads requires 30+ seconds (paid views)",
+                    "verification": "Compare organic vs paid views, use correct platform for the metric needed"
+                  }
+                ]
+              },
+              "tools": ["Video campaign reports", "YouTube Analytics", "Video quartile metrics"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "crossCutting": {
+    "googleEcosystem": [],
+    "competitors": [],
+    "privacyConsent": []
+  }
+}
