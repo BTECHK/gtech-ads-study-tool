@@ -1,1 +1,45 @@
+# Private/Prep Materials - DO NOT COMMIT
 .planning/
+.claude/
+docs/
+data/
+
+# Personal files
+RESUME.md
+progress.txt
+prd.json
+
+# Prep prompts and guides
+Prompt_*.md
+Merge_Guide.md
+google-ads-lifecycle-study-tool.html
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+
+# Old UI folder (migrated to GTechStudyTool)
+ui/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

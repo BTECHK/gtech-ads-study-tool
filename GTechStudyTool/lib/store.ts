@@ -10,6 +10,7 @@ interface StoreState {
   expandedNodeIds: Set<string>;
   toggleExpanded: (id: string) => void;
   expandAll: (allIds: string[]) => void;
+  addToExpanded: (ids: string[]) => void;
   collapseAll: () => void;
 
   // Filters
@@ -46,6 +47,11 @@ export const useStore = create<StoreState>((set) => ({
     return { expandedNodeIds: newSet };
   }),
   expandAll: (allIds) => set({ expandedNodeIds: new Set(allIds) }),
+  addToExpanded: (ids) => set((state) => {
+    const newSet = new Set(state.expandedNodeIds);
+    ids.forEach(id => newSet.add(id));
+    return { expandedNodeIds: newSet };
+  }),
   collapseAll: () => set({ expandedNodeIds: new Set() }),
 
   priorityFilter: 'all',
