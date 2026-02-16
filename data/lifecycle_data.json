@@ -4495,11 +4495,516 @@
           "sqlConnection": "-- Batch: Scheduled query that runs daily to aggregate yesterday's data\n-- This would be scheduled to run at 2am daily\nCREATE OR REPLACE TABLE `project.dataset.daily_performance` AS\nSELECT\n  DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) as date,\n  campaign_id,\n  SUM(clicks) as clicks,\n  SUM(impressions) as impressions,\n  SUM(conversions) as conversions,\n  SUM(cost_micros)/1000000 as cost\nFROM `project.dataset.hourly_stats`\nWHERE DATE(timestamp) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)\nGROUP BY campaign_id;\n\n-- Stream: BigQuery supports streaming inserts for real-time data\n-- Streaming data can be queried immediately but has different cost model\n-- Example: Query recent streaming data with slight delay allowance\nSELECT\n  campaign_id,\n  COUNT(*) as recent_clicks\nFROM `project.dataset.click_stream`\nWHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 MINUTE)\nGROUP BY campaign_id;"
         }
       ]
+    },
+    {
+      "id": "phase-7",
+      "name": "Analysis & Optimization",
+      "phaseNumber": 7,
+      "priority": "know_well",
+      "category": "digital_marketing",
+      "funnelStage": "All (optimization is continuous)",
+      "summary": "Continuous performance analysis and optimization using the Volume × Quality framework, systematic metric diagnosis, search term analysis, landing page optimization, and reporting/dashboard creation",
+      "adsContext": "Optimization is where TSCs add the most value. Understanding how to diagnose performance issues, identify optimization opportunities, and communicate insights through dashboards separates reactive support from proactive consulting.",
+      "dataFlowIn": "Performance metrics, search terms data, landing page analytics, conversion data, competitive benchmarks",
+      "dataFlowOut": "Optimization recommendations, negative keyword lists, A/B test results, executive dashboards, automated alerts",
+      "children": [
+        {
+          "id": "p7-1",
+          "name": "Optimization Framework (Volume × Quality)",
+          "parentId": "phase-7",
+          "priority": "know_well",
+          "category": "optimization_strategy",
+          "definition": "A strategic framework for diagnosing and optimizing Google Ads performance by analyzing campaigns across two dimensions: Volume (impressions, clicks, traffic scale) and Quality (CTR, conversion rate, ROAS, efficiency metrics).",
+          "adsContext": "The Volume × Quality matrix creates four optimization quadrants: High Volume/High Quality (scale winners), High Volume/Low Quality (fix efficiency), Low Volume/High Quality (scale carefully), Low Volume/Low Quality (review or pause). This framework guides resource allocation and prioritization.",
+          "tscRelevance": "TSCs use this framework to quickly categorize campaigns and recommend appropriate actions. It provides a structured approach to the common question 'what should I optimize first?' and helps explain optimization priorities to clients.",
+          "keyDetails": [
+            "Volume metrics: Impressions, clicks, eligible impressions, impression share, absolute top impression share",
+            "Quality metrics: CTR, conversion rate, ROAS, CPA, quality score, bounce rate",
+            "Quadrant 1 - High Volume/High Quality: Best performers - scale these with more budget, expand keywords, increase bids",
+            "Quadrant 2 - High Volume/Low Quality: Efficiency problems - improve targeting, add negatives, optimize landing pages, refine audiences",
+            "Quadrant 3 - Low Volume/High Quality: Hidden gems - increase bids, expand match types, add similar keywords, increase budgets",
+            "Quadrant 4 - Low Volume/Low Quality: Review for pause - test major changes, consider restructuring, may not be viable",
+            "Prioritization: Fix Quadrant 2 first (most waste), then scale Quadrant 3 (best ROI), then grow Quadrant 1, finally evaluate Quadrant 4",
+            "Dashboard visualization: Scatter plot with volume on X-axis, quality on Y-axis, bubble size by spend"
+          ],
+          "interviewQuestions": [
+            "Describe a framework you would use to prioritize optimization efforts across a large account with 50+ campaigns.",
+            "A campaign has high click volume but low conversion rate. What's your optimization approach?",
+            "How would you explain to a client why you're recommending they pause their highest-traffic campaign?"
+          ],
+          "sqlConnection": "-- Volume × Quality Matrix Query\nSELECT\n  campaign_name,\n  SUM(impressions) as volume_impressions,\n  SUM(clicks) as volume_clicks,\n  SAFE_DIVIDE(SUM(clicks), SUM(impressions)) * 100 as quality_ctr,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as quality_conv_rate,\n  SAFE_DIVIDE(SUM(conversion_value), SUM(cost_micros)/1000000) as quality_roas,\n  CASE\n    WHEN SUM(impressions) > 10000 AND SAFE_DIVIDE(SUM(conversions), SUM(clicks)) > 0.03 THEN 'Q1: Scale Winners'\n    WHEN SUM(impressions) > 10000 AND SAFE_DIVIDE(SUM(conversions), SUM(clicks)) <= 0.03 THEN 'Q2: Fix Efficiency'\n    WHEN SUM(impressions) <= 10000 AND SAFE_DIVIDE(SUM(conversions), SUM(clicks)) > 0.03 THEN 'Q3: Scale Carefully'\n    ELSE 'Q4: Review/Pause'\n  END as optimization_quadrant\nFROM campaign_performance\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY campaign_name\nORDER BY volume_impressions DESC;",
+          "tools": ["Google Ads Performance Dashboard", "Custom Looker Studio Reports", "Google Ads Recommendations", "Optimization Score"]
+        },
+        {
+          "id": "p7-2",
+          "name": "Metric Diagnostic Chain",
+          "parentId": "phase-7",
+          "priority": "know_well",
+          "category": "troubleshooting",
+          "definition": "A systematic approach to diagnosing performance issues by walking backwards through the advertising funnel: Conversions ← Conversion Rate ← Clicks ← CTR ← Impressions ← Budget/Bids, identifying where the bottleneck occurs.",
+          "adsContext": "When clients say 'performance is down,' this framework pinpoints exactly where in the funnel the problem lies. Working backwards from the business goal (conversions) to the inputs (budget/bids) creates a clear diagnostic path and prevents solving the wrong problem.",
+          "tscRelevance": "This is THE diagnostic framework for TSC troubleshooting. Instead of guessing, you systematically check each link in the chain until you find the break. This approach demonstrates analytical rigor in interviews.",
+          "keyDetails": [
+            "Step 6 - Conversions: Are total conversions down? If yes, continue backwards. If no, investigate value/quality.",
+            "Step 5 - Conversion Rate: Is conversion rate stable? If rate is down, problem is post-click (landing page, offer, tracking).",
+            "Step 4 - Clicks: Are clicks volume down? If yes, continue backwards. If no but conv rate is down, focus on landing page.",
+            "Step 3 - CTR: Is CTR stable? If CTR is down, problem is ad relevance/copy. If CTR is stable, impression volume is the issue.",
+            "Step 2 - Impressions: Are impressions down? If yes, check impression share. Lost to budget? Lost to rank?",
+            "Step 1 - Budget/Bids: Is budget depleting early (limited by budget)? Are bids competitive (auction insights)?",
+            "Quick diagnosis: Conversions down + rate stable = traffic problem. Conversions down + rate down = landing page/offer problem.",
+            "Seasonality check: Compare to same period last year before assuming a problem exists.",
+            "Competitor check: Auction insights for competitive pressure causing impression/click loss."
+          ],
+          "interviewQuestions": [
+            "A client's conversions dropped 30% week over week. Walk me through your diagnostic process.",
+            "How would you determine whether a conversion drop is a traffic problem or a landing page problem?",
+            "What's the difference between 'limited by budget' and 'low search volume' impact on the diagnostic chain?"
+          ],
+          "sqlConnection": "-- Diagnostic Chain Query: Find the break point\nWITH metrics AS (\n  SELECT\n    date,\n    SUM(impressions) as impressions,\n    SUM(clicks) as clicks,\n    SAFE_DIVIDE(SUM(clicks), SUM(impressions)) * 100 as ctr,\n    SUM(conversions) as conversions,\n    SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as conv_rate\n  FROM campaign_stats\n  WHERE campaign_id = @campaign_id\n  GROUP BY date\n)\nSELECT\n  date,\n  impressions,\n  LAG(impressions, 7) OVER (ORDER BY date) as impressions_7d_ago,\n  SAFE_DIVIDE(impressions - LAG(impressions, 7) OVER (ORDER BY date), LAG(impressions, 7) OVER (ORDER BY date)) * 100 as impressions_change_pct,\n  ctr,\n  LAG(ctr, 7) OVER (ORDER BY date) as ctr_7d_ago,\n  conv_rate,\n  LAG(conv_rate, 7) OVER (ORDER BY date) as conv_rate_7d_ago,\n  conversions,\n  LAG(conversions, 7) OVER (ORDER BY date) as conversions_7d_ago\nFROM metrics\nORDER BY date DESC\nLIMIT 14;\n-- Look for first metric in chain that shows significant decline",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversions dropped significantly",
+              "Performance declining week over week",
+              "Client reports 'something is wrong'",
+              "ROAS declining despite stable spend"
+            ],
+            "diagnosticQuestions": [
+              "Starting from conversions, which metric shows the first significant decline?",
+              "Is conversion rate stable while conversion volume is down (traffic problem)?",
+              "Is conversion rate declining (post-click problem)?",
+              "Is CTR stable while clicks are down (impression volume problem)?",
+              "Are we limited by budget or losing impression share to rank?"
+            ],
+            "causes": [
+              {
+                "issue": "Impression volume down - Budget limited",
+                "probability": "high",
+                "resolution": "Increase daily budget, reduce bids to get more clicks per dollar, or focus budget on top performers",
+                "verification": "Check 'Limited by budget' status, impression share lost to budget metric"
+              },
+              {
+                "issue": "Impression volume down - Rank limited",
+                "probability": "high",
+                "resolution": "Improve Quality Score (ad relevance, landing page), increase bids, improve ad copy",
+                "verification": "Check impression share lost to rank, Quality Score trends, auction insights"
+              },
+              {
+                "issue": "CTR declined - Ad fatigue or competitive pressure",
+                "probability": "medium",
+                "resolution": "Refresh ad copy, test new creative, review competitor ads, add new ad variations",
+                "verification": "Check ad rotation settings, ad performance by age, auction insights position metrics"
+              },
+              {
+                "issue": "Conversion rate declined - Landing page or offer issue",
+                "probability": "medium",
+                "resolution": "Review landing page changes, check page speed, verify conversion tracking, review offer/pricing",
+                "verification": "GA4 landing page report, page speed insights, conversion tracking diagnostics"
+              }
+            ]
+          },
+          "tools": ["Google Ads Overview Page", "Auction Insights", "Impression Share Columns", "Change History", "Looker Studio Time Series"]
+        },
+        {
+          "id": "p7-3",
+          "name": "Search Term Analysis",
+          "parentId": "phase-7",
+          "priority": "know_well",
+          "category": "keyword_optimization",
+          "definition": "The process of analyzing actual search queries that triggered ads, identifying valuable queries for keyword expansion (query mining) and irrelevant queries for negative keyword addition, to continuously refine targeting precision.",
+          "adsContext": "Search term analysis is the core ongoing optimization task for Search campaigns. With broad match and Smart Bidding, understanding which queries drive value vs waste is essential. This is where keyword strategy meets real user behavior.",
+          "tscRelevance": "TSCs regularly review search term reports to identify wasted spend and expansion opportunities. This skill demonstrates understanding of match types in practice and ongoing account hygiene responsibilities.",
+          "keyDetails": [
+            "Search Terms Report: Shows actual queries matched, not just keywords bid on - available in Google Ads and via API",
+            "Query mining (positive): Find converting queries not explicitly targeted → add as exact/phrase match keywords",
+            "Negative keyword building: Find non-converting high-spend queries → add as negative keywords",
+            "Negative match types: Negative Exact (blocks only that query), Negative Phrase (blocks query with those words), Negative Broad (blocks queries containing all words)",
+            "Campaign vs ad group negatives: Campaign-level for account-wide irrelevant terms, ad group-level for routing queries correctly",
+            "Close variants: Search terms may differ from keywords due to close variant matching - review for intent drift",
+            "Performance thresholds: High impressions + low CTR = likely irrelevant. High clicks + zero conversions = candidate for negative.",
+            "Frequency: Review weekly for high-spend accounts, monthly for lower spend. Focus on high-cost queries first.",
+            "Shared negative lists: Create lists by theme (competitors, job seekers, B2C when you're B2B) for efficient management"
+          ],
+          "interviewQuestions": [
+            "How would you identify search terms that should be added as negative keywords?",
+            "A client is using broad match for their main keywords. What search term analysis cadence and approach would you recommend?",
+            "Explain the difference between negative exact, negative phrase, and negative broad match."
+          ],
+          "sqlConnection": "-- Search Term Mining: Find negative keyword candidates\nSELECT\n  search_term,\n  SUM(impressions) as impressions,\n  SUM(clicks) as clicks,\n  SUM(cost_micros)/1000000 as cost,\n  SUM(conversions) as conversions,\n  SAFE_DIVIDE(SUM(clicks), SUM(impressions)) * 100 as ctr,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as conv_rate\nFROM search_terms_report\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY search_term\nHAVING cost > 50 AND conversions = 0  -- High spend, zero conversions\nORDER BY cost DESC;\n\n-- Search Term Mining: Find keyword expansion candidates\nSELECT\n  search_term,\n  SUM(conversions) as conversions,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as conv_rate,\n  SUM(cost_micros)/1000000 as cost\nFROM search_terms_report\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\n  AND search_term NOT IN (SELECT keyword_text FROM keywords)  -- Not already targeted\nGROUP BY search_term\nHAVING conversions >= 2 AND conv_rate > 3  -- Converting well\nORDER BY conversions DESC;",
+          "tools": ["Search Terms Report", "Negative Keyword Lists", "Google Ads Editor", "Keyword Planner", "Google Ads Scripts for Automation"]
+        },
+        {
+          "id": "p7-4",
+          "name": "Landing Page Optimization",
+          "parentId": "phase-7",
+          "priority": "know_well",
+          "category": "conversion_optimization",
+          "definition": "The practice of improving post-click experience through A/B testing, conversion rate optimization (CRO), and landing page best practices to maximize the percentage of visitors who convert.",
+          "adsContext": "Landing page quality affects both conversion rate AND Quality Score (thus ad rank and CPC). TSCs must understand that optimization doesn't end at the click - post-click experience is often the biggest lever for improving campaign performance and is frequently overlooked.",
+          "tscRelevance": "When diagnosing low conversion rates, TSCs need to evaluate landing page quality. Understanding CRO basics helps recommend improvements beyond just Google Ads settings. This knowledge bridges paid media and UX disciplines.",
+          "keyDetails": [
+            "Message match: Headline and offer on landing page should match ad copy - disconnect creates confusion and bounces",
+            "Above-the-fold: Key value proposition, CTA visible without scrolling - users decide in seconds",
+            "Page speed: Google measures landing page experience; slow pages hurt Quality Score and conversion rate. Use PageSpeed Insights.",
+            "Mobile optimization: Over 60% of traffic is mobile - thumb-friendly CTAs, readable text, no horizontal scrolling",
+            "Social proof: Testimonials, reviews, trust badges reduce friction and increase conversion confidence",
+            "Form optimization: Minimize fields, use multi-step forms for complex submissions, clear field labels",
+            "A/B testing: Test one element at a time (headline, CTA, image) with statistical significance before declaring winner",
+            "Quality Score impact: Landing page experience is 1/3 of Quality Score - improvements reduce CPC and improve position",
+            "Thank you page: Use for conversion tracking, upsells, setting expectations, and social sharing",
+            "Heat maps and session recordings: Tools like Hotjar/Crazy Egg reveal user behavior beyond just conversion data"
+          ],
+          "interviewQuestions": [
+            "A campaign has strong CTR but poor conversion rate. What landing page elements would you evaluate?",
+            "Explain how landing page experience affects Quality Score and overall campaign performance.",
+            "How would you structure an A/B test for a landing page headline?"
+          ],
+          "sqlConnection": "-- Landing Page Performance Analysis\nSELECT\n  landing_page_url,\n  COUNT(DISTINCT session_id) as sessions,\n  SUM(conversions) as conversions,\n  SAFE_DIVIDE(SUM(conversions), COUNT(DISTINCT session_id)) * 100 as conv_rate,\n  AVG(time_on_page) as avg_time_on_page,\n  SAFE_DIVIDE(SUM(CASE WHEN page_views = 1 THEN 1 ELSE 0 END), COUNT(DISTINCT session_id)) * 100 as bounce_rate\nFROM landing_page_analytics\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY landing_page_url\nHAVING sessions > 100\nORDER BY sessions DESC;",
+          "tools": ["Google PageSpeed Insights", "Google Optimize (sunset but patterns remain)", "GA4 Landing Page Report", "Hotjar/Crazy Egg", "Unbounce/Instapage", "Google Ads Landing Page Experience Column"]
+        },
+        {
+          "id": "p7-5",
+          "name": "Reporting & Dashboards",
+          "parentId": "phase-7",
+          "priority": "know_well",
+          "category": "reporting",
+          "definition": "Creating automated, actionable reports and dashboards using Looker Studio, BigQuery scheduled queries, and Google Ads scripts to communicate performance, surface insights, and enable data-driven decisions.",
+          "adsContext": "Effective reporting transforms raw data into actionable insights. TSCs must know how to build dashboards that clients actually use, automate routine reporting, and surface the metrics that matter for decision-making rather than overwhelming with data.",
+          "tscRelevance": "TSCs help clients build reporting infrastructure that reduces manual work and improves visibility. Understanding Looker Studio, BigQuery scheduled queries, and Google Ads scripts enables scalable solutions.",
+          "keyDetails": [
+            "Looker Studio (Data Studio): Free Google tool for interactive dashboards. Connects directly to Google Ads, GA4, BigQuery.",
+            "Dashboard design principles: Start with KPIs that matter to stakeholders, then supporting detail. Less is more.",
+            "Executive summary: Top-level metrics, week-over-week and month-over-month trends, key call-outs",
+            "Drill-down capability: From account → campaign → ad group → keyword/search term for investigation",
+            "BigQuery scheduled queries: Automate data transformations, aggregations, anomaly detection on a schedule",
+            "Google Ads scripts: JavaScript code running in Google Ads for automation - alerts, bulk changes, custom reporting",
+            "Common script use cases: Budget pacing alerts, Quality Score monitoring, bid adjustments, search term mining automation",
+            "Blended data: Combining Google Ads + GA4 + CRM data in BigQuery for unified reporting",
+            "Report frequency: Daily pacing checks, weekly performance reviews, monthly strategic analysis",
+            "Actionable insights: Every data point should answer 'so what?' - include context and recommended actions"
+          ],
+          "interviewQuestions": [
+            "How would you design a dashboard for an executive who has 5 minutes to understand account performance?",
+            "Describe how you would automate a daily budget pacing alert using Google Ads scripts.",
+            "What's the advantage of building reports in Looker Studio connected to BigQuery vs direct Google Ads connection?"
+          ],
+          "sqlConnection": "-- BigQuery Scheduled Query: Daily Performance Summary for Dashboard\nCREATE OR REPLACE TABLE `project.dataset.daily_summary` AS\nSELECT\n  DATE(timestamp) as date,\n  campaign_name,\n  SUM(impressions) as impressions,\n  SUM(clicks) as clicks,\n  SUM(cost_micros)/1000000 as cost,\n  SUM(conversions) as conversions,\n  SAFE_DIVIDE(SUM(conversion_value), SUM(cost_micros)/1000000) as roas,\n  LAG(SUM(conversions), 7) OVER (PARTITION BY campaign_name ORDER BY DATE(timestamp)) as conversions_7d_ago,\n  SAFE_DIVIDE(SUM(conversions) - LAG(SUM(conversions), 7) OVER (PARTITION BY campaign_name ORDER BY DATE(timestamp)), \n              LAG(SUM(conversions), 7) OVER (PARTITION BY campaign_name ORDER BY DATE(timestamp))) * 100 as wow_change\nFROM `project.dataset.ads_performance`\nWHERE DATE(timestamp) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)\nGROUP BY DATE(timestamp), campaign_name;\n-- Schedule this query to run daily at 6am",
+          "tools": ["Looker Studio", "BigQuery Scheduled Queries", "Google Ads Scripts", "Google Ads API", "BigQuery Data Transfer", "Dataform/dbt"]
+        }
+      ]
+    },
+    {
+      "id": "phase-8",
+      "name": "AI/ML & Competitive",
+      "phaseNumber": 8,
+      "priority": "conceptual_awareness",
+      "category": "ai_ml",
+      "funnelStage": "All",
+      "summary": "Understanding the AI/ML systems powering modern Google Ads including Smart Bidding internals, Performance Max, broad match evolution, and generative AI features, plus competitive landscape awareness",
+      "adsContext": "Google Ads is increasingly AI-first. Understanding how these systems work at a conceptual level enables better optimization, realistic expectation-setting with clients, and informed recommendations. This phase is about understanding what's 'under the hood' and how Google compares to competitors.",
+      "dataFlowIn": "Historical performance data, user signals, conversion data, first-party audiences, creative assets",
+      "dataFlowOut": "Automated bid adjustments, AI-generated creatives, audience expansion, performance predictions",
+      "children": [
+        {
+          "id": "p8-1",
+          "name": "Smart Bidding ML Internals",
+          "parentId": "phase-8",
+          "priority": "conceptual_awareness",
+          "category": "ai_ml",
+          "definition": "The machine learning systems behind Smart Bidding strategies including the features/signals used, prediction mechanisms, learning periods, and minimum data requirements for optimal performance.",
+          "adsContext": "Understanding how Smart Bidding works helps set realistic expectations and optimize inputs (data quality, conversion tracking, audience signals) rather than trying to outsmart the algorithm. The ML is generally better than manual bidding when properly fed.",
+          "tscRelevance": "Clients often ask 'why is Smart Bidding doing X?' or 'how can I control it better?' TSCs with ML understanding can explain the system, set expectations for learning periods, and diagnose when Smart Bidding isn't performing.",
+          "keyDetails": [
+            "Core prediction: For each auction, predict probability of conversion and expected value, then set bid to achieve target",
+            "Feature engineering: Hundreds of signals combined - device, location, time, query, audience, historical behavior, contextual signals",
+            "Real-time auction signals: Weather, competitive auction dynamics, user's recent browsing behavior (anonymized)",
+            "Learning period: 2-4 weeks typically needed to gather sufficient conversion data and learn patterns",
+            "Minimum data: Google recommends 15-30 conversions per month for Target CPA, 50+ for Target ROAS to work optimally",
+            "Conversion delay: Smart Bidding accounts for conversion lag - uses modeled conversions while waiting for actuals",
+            "Portfolio bidding: Shares learning across campaigns - helpful for campaigns with individually low conversion volume",
+            "Seasonality adjustments: Built-in detection plus manual overrides for known events (sales, holidays)",
+            "Data recency: Recent performance weighted more heavily than older data in predictions",
+            "Why not manual: ML processes thousands of signals per auction that humans cannot replicate at scale"
+          ],
+          "interviewQuestions": [
+            "Explain at a high level how Smart Bidding decides what to bid in each auction.",
+            "Why does Google recommend a minimum of 15-30 conversions per month for Target CPA campaigns?",
+            "A client's Smart Bidding campaign isn't hitting targets after 3 weeks. What factors would you investigate?"
+          ],
+          "sqlConnection": "-- Understanding conversion patterns helps Smart Bidding work better\n-- Analyzing conversion delay for accurate learning period expectations\nSELECT\n  DATE_DIFF(conversion_date, click_date, DAY) as days_to_convert,\n  COUNT(*) as conversion_count,\n  SAFE_DIVIDE(COUNT(*), SUM(COUNT(*)) OVER ()) * 100 as pct_of_conversions\nFROM conversions\nWHERE conversion_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY) AND CURRENT_DATE()\nGROUP BY days_to_convert\nORDER BY days_to_convert;\n-- Understanding your conversion delay informs learning period expectations"
+        },
+        {
+          "id": "p8-2",
+          "name": "Performance Max Deep Dive",
+          "parentId": "phase-8",
+          "priority": "conceptual_awareness",
+          "category": "campaign_type",
+          "definition": "Deep understanding of Performance Max campaign structure including asset groups, audience signals, cross-channel inventory access, insights reporting, and how the ML optimizes across Google's full network.",
+          "adsContext": "Performance Max represents Google's AI-first campaign future. It trades control for automation, using ML to find conversions across Search, Display, YouTube, Gmail, Discover, and Maps. Understanding its mechanics helps optimize inputs and interpret results.",
+          "tscRelevance": "Performance Max questions are increasingly common. TSCs must understand asset groups vs ad groups, how to provide audience signals, what data is available in insights reporting, and common troubleshooting scenarios.",
+          "keyDetails": [
+            "Cross-channel access: Single campaign type accessing Search, Shopping, Display, YouTube, Discover, Gmail, Maps inventory",
+            "Asset groups: Replace ad groups - contain creative assets (text, images, video) and associated audience signals",
+            "Audience signals: Hints to the algorithm - custom segments, customer lists, website visitors. Signals, not targeting.",
+            "Final URL expansion: Default behavior opens all pages on site for traffic - can limit with rules or disable entirely",
+            "Search themes: Recently added ability to guide Search inventory - helps algorithm understand business/products",
+            "Insights reporting: Campaign-level insights on audiences, search terms (categories), asset performance ratings",
+            "Limited visibility: Less granular reporting than Search campaigns - categories vs specific terms, no keyword-level control",
+            "Asset performance: Ratings (Low, Good, Best) indicate which creatives are performing - replace Low performers",
+            "New customer acquisition: Goal to optimize for new vs existing customers at different values",
+            "Best for: Advertisers with clear conversion goals, sufficient conversion volume, strong creative assets, and comfort with automation"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between audience signals and audience targeting in Performance Max.",
+            "What data is available in Performance Max insights reporting, and what's notably missing compared to Search campaigns?",
+            "When would you recommend Performance Max vs a traditional Search campaign?"
+          ],
+          "sqlConnection": "-- Performance Max requires understanding aggregate performance patterns\n-- Asset group level analysis\nSELECT\n  asset_group_name,\n  SUM(conversions) as conversions,\n  SUM(conversion_value) as conversion_value,\n  SAFE_DIVIDE(SUM(conversion_value), SUM(cost_micros)/1000000) as roas\nFROM pmax_performance\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY asset_group_name\nORDER BY conversion_value DESC;"
+        },
+        {
+          "id": "p8-3",
+          "name": "Broad Match Evolution",
+          "parentId": "phase-8",
+          "priority": "conceptual_awareness",
+          "category": "ai_ml",
+          "definition": "The evolution of broad match from string-based matching to ML-based semantic matching, understanding query intent rather than just word presence, and how it works optimally with Smart Bidding.",
+          "adsContext": "Modern broad match uses Google's language understanding (BERT, LLMs) to match queries based on intent, not string similarity. Combined with Smart Bidding, it finds converting queries humans wouldn't think to target while bidding appropriately for each.",
+          "tscRelevance": "Many clients fear broad match based on past experience. TSCs must explain how modern broad match differs from legacy behavior, when it's appropriate (with Smart Bidding and conversion tracking), and how to monitor via search terms.",
+          "keyDetails": [
+            "Legacy broad match: String matching with synonyms - 'running shoes' matched 'jogging sneakers' based on word relationships",
+            "Modern broad match: Semantic/intent matching using ML - 'running shoes' might match 'best footwear for marathon training'",
+            "BERT integration: Google's language model understands context - 'bank' means different things in 'river bank' vs 'bank account'",
+            "Smart Bidding synergy: Broad match finds queries, Smart Bidding decides what to bid. Critical pairing for success.",
+            "Not recommended without: Smart Bidding AND conversion tracking. Without these, broad match can waste spend.",
+            "Signal amplification: Broad match + audience signals helps algorithm find right users for broad queries",
+            "Query expansion: Will match queries with no words in common if intent matches - 'lawn care service' → 'someone to cut my grass'",
+            "Negative keywords still critical: Monitor search terms report actively, add negatives for off-target queries",
+            "Performance pattern: Often higher volume, initially lower efficiency, improves as Smart Bidding learns",
+            "Google's recommendation: Start with broad match + Smart Bidding for most keywords, use exact/phrase for brand terms or very specific needs"
+          ],
+          "interviewQuestions": [
+            "How does modern broad match differ from the broad match of 5 years ago?",
+            "Why does Google recommend pairing broad match with Smart Bidding?",
+            "A client is hesitant about broad match based on past bad experiences. How would you address their concerns?"
+          ],
+          "sqlConnection": "-- Analyze broad match performance vs other match types\nSELECT\n  match_type,\n  COUNT(DISTINCT keyword_id) as keywords,\n  SUM(impressions) as impressions,\n  SUM(clicks) as clicks,\n  SUM(conversions) as conversions,\n  SUM(cost_micros)/1000000 as cost,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as conv_rate,\n  SAFE_DIVIDE(SUM(cost_micros)/1000000, SUM(conversions)) as cpa\nFROM keyword_performance\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY match_type\nORDER BY conversions DESC;"
+        },
+        {
+          "id": "p8-4",
+          "name": "Generative AI in Ads",
+          "parentId": "phase-8",
+          "priority": "conceptual_awareness",
+          "category": "ai_ml",
+          "definition": "Google's integration of generative AI into advertising including AI-generated ad creatives, conversational campaign creation, AI Overviews Ads, and the role of Gemini in the advertising ecosystem.",
+          "adsContext": "Generative AI is transforming ad creation and the search experience. AI Overviews change how ads appear in search, while generative creative tools help advertisers produce more ad variations faster. Understanding these trends helps prepare clients for the evolving landscape.",
+          "tscRelevance": "TSCs should understand emerging AI features to set client expectations, explain new ad formats, and guide adoption of AI-assisted tools. This is rapidly evolving territory where conceptual understanding matters more than deep technical knowledge.",
+          "keyDetails": [
+            "Automatically Created Assets: AI generates additional headlines and descriptions based on landing page and existing assets",
+            "Conversational campaign creation: Natural language interface for building Search campaigns via chat with Gemini",
+            "AI Overviews Ads: Shopping and Search ads appearing within AI-generated search summaries - new ad format in SGE",
+            "Image generation: AI-generated product images, background removal, image enhancement in Merchant Center and Ads",
+            "Gemini in Google Ads: Integrated AI assistant for campaign recommendations, troubleshooting, and optimization suggestions",
+            "Asset generation at scale: Performance Max auto-generates ad variations from provided assets and landing pages",
+            "Creative testing: AI enables rapid creative variation testing at scale beyond human creative capacity",
+            "SGE impact on search: AI Overviews may reduce traditional search result clicks, changing the search ads landscape",
+            "Brand safety considerations: AI-generated content needs review for brand voice and accuracy",
+            "Human oversight: AI assists but human review critical for brand consistency, accuracy, and compliance"
+          ],
+          "interviewQuestions": [
+            "How do you think AI Overviews will change the search advertising landscape?",
+            "What are the benefits and risks of using AI-generated ad copy?",
+            "How would you advise a client on adopting generative AI features in their Google Ads strategy?"
+          ],
+          "sqlConnection": "-- Analyzing performance of AI-generated vs human-created assets\nSELECT\n  asset_source,  -- 'AI_GENERATED' vs 'MANUALLY_CREATED'\n  COUNT(*) as assets,\n  AVG(performance_rating_score) as avg_performance,\n  SUM(impressions) as total_impressions,\n  SAFE_DIVIDE(SUM(clicks), SUM(impressions)) * 100 as avg_ctr\nFROM asset_performance\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY asset_source;"
+        },
+        {
+          "id": "p8-5",
+          "name": "Competitive Landscape",
+          "parentId": "phase-8",
+          "priority": "conceptual_awareness",
+          "category": "competitive_intelligence",
+          "definition": "Understanding how Google Ads compares to competitors including Meta (Facebook/Instagram), Amazon Ads, TikTok Ads, Microsoft/Bing Ads, and emerging Retail Media Networks - their strengths, weaknesses, and strategic implications.",
+          "adsContext": "No advertiser uses only Google Ads. Understanding the competitive landscape helps position Google's strengths, acknowledge limitations honestly, and advise on multi-platform strategies. This knowledge demonstrates business acumen beyond just Google Ads expertise.",
+          "tscRelevance": "TSCs may face questions about why clients should use Google vs alternatives, or how to integrate Google with other platforms. Honest competitive analysis builds trust and positions you as a strategic advisor, not just a Google advocate.",
+          "keyDetails": [
+            "Google Search Ads: Unmatched intent capture - users actively searching. Highest purchase intent of any platform. Limited creative format.",
+            "Google Display/YouTube: Massive reach (90%+ of internet users), strong for awareness. Brand safety concerns, viewability varies.",
+            "Meta (Facebook/Instagram): Superior interest and behavioral targeting, best social creative formats. Privacy changes hurt measurement.",
+            "Amazon Ads: Purchase intent + closed-loop attribution (buy on Amazon). Limited to Amazon shoppers, expensive CPCs.",
+            "TikTok Ads: Best for Gen Z reach, viral creative potential, lower CPMs. Young skewing audience, brand safety concerns, uncertain future.",
+            "Microsoft/Bing Ads: Lower CPCs, older/higher-income audience, LinkedIn integration. Smaller scale (~5% search market).",
+            "Retail Media Networks: Closed-loop attribution like Amazon, growing rapidly. Fragmented across retailers (Walmart, Target, Instacart).",
+            "Cross-platform measurement: Challenge of attributing conversions across platforms - incrementality testing helps.",
+            "Platform mix strategy: Intent platforms (Google, Amazon) for bottom funnel, social (Meta, TikTok) for awareness/consideration.",
+            "Google's moat: Search intent, first-party data from ecosystem (Maps, YouTube, Gmail), ML leadership, advertiser tool maturity"
+          ],
+          "interviewQuestions": [
+            "A client asks why they should invest more in Google Ads vs Meta. How do you advise them?",
+            "What are Google Ads' biggest competitive threats in the next 3-5 years?",
+            "How would you help a client think about allocating budget across Google, Meta, and Amazon?"
+          ],
+          "sqlConnection": "-- Cross-platform performance comparison (if data consolidated)\nSELECT\n  platform,\n  SUM(spend) as total_spend,\n  SUM(conversions) as total_conversions,\n  SAFE_DIVIDE(SUM(spend), SUM(conversions)) as cpa,\n  SAFE_DIVIDE(SUM(revenue), SUM(spend)) as roas,\n  SUM(impressions) as reach\nFROM cross_platform_performance\nWHERE date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND CURRENT_DATE()\nGROUP BY platform\nORDER BY total_spend DESC;"
+        }
+      ]
     }
   ],
   "crossCutting": {
-    "googleEcosystem": [],
-    "competitors": [],
-    "privacyConsent": []
+    "googleEcosystem": [
+      {
+        "product": "Google Ads",
+        "description": "The core advertising platform for creating, managing, and optimizing pay-per-click campaigns across Search, Display, YouTube, Shopping, and App inventory.",
+        "phasesInvolved": ["All phases - the central hub"],
+        "dataSent": "Campaign configurations, bids, budgets, creative assets, audience targeting, conversion actions",
+        "dataReceived": "Impressions, clicks, conversions, costs, auction insights, recommendations, quality scores",
+        "commonTscIssues": ["Ads not showing (policy, budget, bids)", "Conversion tracking gaps", "Smart Bidding not hitting targets", "Quality Score drops", "Account suspensions", "Attribution discrepancies"]
+      },
+      {
+        "product": "Google Analytics 4 (GA4)",
+        "description": "Event-based analytics platform for understanding user behavior across websites and apps, with cross-device tracking and ML-powered insights.",
+        "phasesInvolved": ["Phase 3 (Targeting - Audiences)", "Phase 4 (Creatives - Landing pages)", "Phase 5 (Tracking - Event tracking, attribution)", "Phase 7 (Analysis)"],
+        "dataSent": "Events, user properties, e-commerce data, custom dimensions",
+        "dataReceived": "Session data, user journeys, conversion paths, audience insights, predictive metrics",
+        "commonTscIssues": ["GA4/Ads linking failures", "Audience not populating in Ads", "Conversion discrepancies between GA4 and Ads", "Data thresholding hiding insights", "Migration from Universal Analytics issues"]
+      },
+      {
+        "product": "Google Tag Manager (GTM)",
+        "description": "Tag management system for deploying and managing marketing and analytics tags without modifying website code directly.",
+        "phasesInvolved": ["Phase 5 (Tracking - All tag implementation)", "Phase 3 (Targeting - Audience pixel deployment)"],
+        "dataSent": "Tag configurations, triggers, variables, consent settings",
+        "dataReceived": "Preview/debug data, container versions, deployment status",
+        "commonTscIssues": ["Tags not firing (triggers misconfigured)", "Conversion Linker missing", "Container conflicts", "Cross-domain tracking failures", "Consent Mode implementation errors", "Variable extraction failures"]
+      },
+      {
+        "product": "BigQuery",
+        "description": "Google Cloud's serverless, highly scalable data warehouse for analytics, supporting SQL queries on petabyte-scale datasets with integrated ML.",
+        "phasesInvolved": ["Phase 5 (Tracking - Data storage)", "Phase 6 (Data Pipelines - Core platform)", "Phase 7 (Analysis - Reporting source)"],
+        "dataSent": "SQL queries, scheduled query configurations, data uploads (OCI data)",
+        "dataReceived": "Query results, Google Ads Data Transfer exports, GA4 exports, transformed datasets",
+        "commonTscIssues": ["High query costs from unpartitioned tables", "Data Transfer not running", "Schema changes breaking queries", "Permissions/access issues", "Query performance problems"]
+      },
+      {
+        "product": "Looker Studio",
+        "description": "Free data visualization and business intelligence tool for creating interactive dashboards and reports from multiple data sources.",
+        "phasesInvolved": ["Phase 7 (Analysis - Dashboard creation)", "Phase 6 (Data Pipelines - Visualization layer)"],
+        "dataSent": "Data source connections, report configurations, filter settings",
+        "dataReceived": "Visualized data from Google Ads, GA4, BigQuery, Sheets, and 600+ connectors",
+        "commonTscIssues": ["Data freshness delays", "Blended data inaccuracies", "Dashboard performance with large datasets", "Calculated field errors", "Sharing/permissions issues"]
+      },
+      {
+        "product": "Campaign Manager 360 (CM360)",
+        "description": "Enterprise ad serving and measurement platform for managing digital campaigns across multiple channels with unified reporting.",
+        "phasesInvolved": ["Phase 3 (Targeting - Audience management)", "Phase 4 (Creatives - Ad serving)", "Phase 5 (Tracking - Cross-channel attribution)"],
+        "dataSent": "Creative assets, trafficking configurations, Floodlight tags",
+        "dataReceived": "Cross-publisher reach/frequency, viewability, brand safety, conversions",
+        "commonTscIssues": ["Floodlight tag implementation", "Discrepancies with publisher reporting", "Creative approval delays", "Attribution model configuration", "Data integration with DV360"]
+      },
+      {
+        "product": "Display & Video 360 (DV360)",
+        "description": "Demand-side platform (DSP) for programmatic media buying across display, video, audio, and connected TV with advanced audience targeting.",
+        "phasesInvolved": ["Phase 3 (Targeting - Programmatic audiences)", "Phase 4 (Creatives - Dynamic creative)", "Phase 2 (Bidding - Programmatic bidding)"],
+        "dataSent": "Campaign configurations, audience targets, creative assets, bid strategies",
+        "dataReceived": "Impression data, exchange auction data, reach/frequency, brand safety scores",
+        "commonTscIssues": ["Low win rates", "Brand safety concerns", "Audience list size issues", "Creative spec failures", "Pacing problems", "Integration with CM360"]
+      },
+      {
+        "product": "Merchant Center",
+        "description": "Platform for uploading and managing product data feeds that power Shopping ads, free product listings, and local inventory ads.",
+        "phasesInvolved": ["Phase 1 (Account Setup - Feed configuration)", "Phase 4 (Creatives - Product data)", "Phase 5 (Tracking - Product-level conversions)"],
+        "dataSent": "Product feeds (title, description, price, availability, images, GTIN), promotions, local inventory",
+        "dataReceived": "Feed diagnostics, policy violations, product approval status, performance insights",
+        "commonTscIssues": ["Product disapprovals (policy, data quality)", "Price/availability mismatches", "GTIN requirements", "Feed processing errors", "Account suspension", "Landing page crawl failures"]
+      },
+      {
+        "product": "Google Ads API",
+        "description": "Programmatic interface for managing Google Ads accounts at scale, enabling custom automation, reporting, and integration with business systems.",
+        "phasesInvolved": ["Phase 5 (Tracking - OCI uploads)", "Phase 6 (Data Pipelines - Data extraction)", "Phase 7 (Analysis - Custom reporting)"],
+        "dataSent": "Mutate operations (campaign changes), reporting queries, conversion uploads",
+        "dataReceived": "Account data, performance metrics, change history, recommendations",
+        "commonTscIssues": ["API quota limits", "Authentication/OAuth issues", "Version deprecation", "Rate limiting", "Partial failures in batch operations", "GAQL query errors"]
+      },
+      {
+        "product": "Search Console",
+        "description": "Tool for monitoring and troubleshooting website presence in Google Search results, including organic search performance and indexing status.",
+        "phasesInvolved": ["Phase 3 (Targeting - Keyword research)", "Phase 4 (Creatives - Landing page quality)", "Phase 7 (Analysis - Organic insights)"],
+        "dataSent": "Sitemap submissions, URL inspection requests, removal requests",
+        "dataReceived": "Organic search queries, impressions, clicks, CTR, position, indexing status, Core Web Vitals",
+        "commonTscIssues": ["Indexing issues affecting landing pages", "Core Web Vitals failures impacting Quality Score", "Organic/paid keyword overlap analysis", "Landing page not indexed", "Manual actions affecting site"]
+      }
+    ],
+    "competitors": [
+      {
+        "name": "Google",
+        "coreProducts": ["Search Ads", "Shopping Ads", "YouTube Ads", "Display Network", "Performance Max", "App Campaigns"],
+        "coreStrength": "Unmatched search intent capture, massive scale across owned properties (Search, YouTube, Maps, Gmail), ML/AI leadership, mature advertiser tools and APIs, first-party data from ecosystem",
+        "threatToGoogle": "N/A - baseline for comparison",
+        "googleResponse": "N/A - baseline for comparison"
+      },
+      {
+        "name": "Meta (Facebook/Instagram)",
+        "coreProducts": ["Facebook Ads", "Instagram Ads", "Messenger Ads", "Audience Network", "WhatsApp Business"],
+        "coreStrength": "Superior interest and behavioral targeting, best social/visual creative formats, strong for discovery and awareness, massive global reach (3B+ users), Instagram Reels competing with TikTok",
+        "threatToGoogle": "Captures budget for upper-funnel awareness that could go to YouTube/Display. Strong ecommerce through Instagram Shopping. Younger demos engaging more on Instagram than Google properties.",
+        "googleResponse": "Demand Gen campaigns for discovery inventory, YouTube Shorts for short-form video, enhanced audience signals in Performance Max, improved visual ad formats"
+      },
+      {
+        "name": "Amazon Ads",
+        "coreProducts": ["Sponsored Products", "Sponsored Brands", "Sponsored Display", "Amazon DSP", "Streaming TV Ads"],
+        "coreStrength": "Purchase intent + closed-loop attribution (see what converts to sales on Amazon), access to Amazon shopper data, growing off-Amazon inventory via DSP, dominant in ecommerce search",
+        "threatToGoogle": "Product searches increasingly start on Amazon (~50%). Closed-loop attribution makes ROAS measurement cleaner than cross-site tracking. Growing DSP competes with Google Display.",
+        "googleResponse": "Shopping Ads improvements, Merchant Center enhancements, Performance Max for retail, emphasizing Google's broader reach beyond Amazon shoppers"
+      },
+      {
+        "name": "TikTok Ads",
+        "coreProducts": ["In-Feed Ads", "TopView", "Branded Hashtag Challenges", "Branded Effects", "Spark Ads", "TikTok Shop"],
+        "coreStrength": "Best platform for Gen Z reach, viral potential with creative content, authentic creator partnerships, lower CPMs, rapidly growing commerce with TikTok Shop",
+        "threatToGoogle": "Capturing attention and ad budgets from younger demographics, particularly for brand awareness. TikTok Shop creating closed-loop commerce competing with Google Shopping.",
+        "googleResponse": "YouTube Shorts with ads, Demand Gen campaigns, creator partnerships, emphasis on YouTube's broader demographic reach and brand safety"
+      },
+      {
+        "name": "Microsoft/Bing Ads",
+        "coreProducts": ["Microsoft Advertising (Search)", "Microsoft Audience Network", "LinkedIn Ads Integration", "Retail Media"],
+        "coreStrength": "Lower CPCs than Google, older/higher-income audience skew, LinkedIn integration for B2B, import campaigns from Google, Copilot AI integration",
+        "threatToGoogle": "Growing market share through AI integration in Bing, B2B advertisers value LinkedIn integration, often more profitable ROI despite lower scale",
+        "googleResponse": "Google remains dominant in search (~90% share), continuous innovation in AI/ML, Gemini integration, emphasis on scale and data advantages"
+      },
+      {
+        "name": "Retail Media Networks",
+        "coreProducts": ["Walmart Connect", "Target Roundel", "Instacart Ads", "Kroger Precision Marketing", "CVS Media Exchange", "Albertsons Media Collective"],
+        "coreStrength": "Closed-loop attribution (ad to in-store or online purchase), first-party shopper data, growing rapidly as retailers monetize their audiences, less affected by privacy changes",
+        "threatToGoogle": "Fragmenting retail/CPG ad budgets away from Google, particularly for consideration and purchase phases. First-party data advantage in cookieless future.",
+        "googleResponse": "Partnerships with retailers, Performance Max for omnichannel, SA360 for multi-platform management, emphasizing Google's ability to drive traffic to retailer sites"
+      }
+    ],
+    "privacyConsent": [
+      {
+        "concept": "GDPR (General Data Protection Regulation)",
+        "definition": "European Union regulation governing data protection and privacy, requiring explicit consent for data collection, right to access/delete data, and strict rules on data processing and transfer.",
+        "adsContext": "GDPR requires explicit consent before tracking users for advertising purposes. Without consent, remarketing lists can't be built, and conversion tracking is limited. The regulation drove the development of Consent Mode and privacy-preserving measurement.",
+        "affectedPhases": ["Phase 3 (Targeting - Audience building requires consent)", "Phase 5 (Tracking - Conversion tracking limited without consent)", "Phase 7 (Analysis - Data gaps from non-consenting users)"]
+      },
+      {
+        "concept": "CCPA (California Consumer Privacy Act)",
+        "definition": "California state law giving consumers rights over their personal data including the right to know what's collected, delete it, and opt-out of sale. Expanded by CPRA (California Privacy Rights Act).",
+        "adsContext": "CCPA requires 'Do Not Sell' opt-out mechanisms. While less strict than GDPR (opt-out vs opt-in), it affects California users and often leads advertisers to apply CCPA standards more broadly across US traffic.",
+        "affectedPhases": ["Phase 3 (Targeting - Opt-out users excluded from data sharing)", "Phase 5 (Tracking - Must honor opt-out requests)", "Phase 7 (Analysis - California user data may have gaps)"]
+      },
+      {
+        "concept": "Third-Party Cookie Deprecation",
+        "definition": "The phasing out of third-party cookies in web browsers, eliminating a primary mechanism for cross-site tracking, retargeting, and attribution. Chrome planned deprecation (delayed multiple times) following Safari and Firefox.",
+        "adsContext": "Third-party cookies enabled cross-site tracking for remarketing and view-through attribution. Their deprecation forces reliance on first-party data, probabilistic matching, and Google's Privacy Sandbox solutions. This fundamentally changes digital advertising measurement.",
+        "affectedPhases": ["Phase 3 (Targeting - Cross-site remarketing affected)", "Phase 5 (Tracking - View-through attribution impacted, Enhanced Conversions becomes critical)", "Phase 8 (AI/ML - Modeling becomes essential for filling data gaps)"]
+      },
+      {
+        "concept": "Consent Mode v2",
+        "definition": "Google's framework for adjusting tag behavior based on user consent status. Tags fire in a limited mode when consent is denied, sending cookieless pings that enable conversion modeling without setting cookies.",
+        "adsContext": "Consent Mode v2 is REQUIRED for EU/EEA advertisers as of March 2024. It includes four signals: ad_storage, analytics_storage, ad_user_data, and ad_personalization. Advanced mode enables conversion modeling for non-consenting users while respecting privacy choices.",
+        "affectedPhases": ["Phase 5 (Tracking - Critical for EU conversion tracking)", "Phase 3 (Targeting - Enables audience building with modeled data)", "Phase 8 (AI/ML - Powers conversion modeling from limited data)"]
+      },
+      {
+        "concept": "Privacy Sandbox",
+        "definition": "Google's initiative to develop privacy-preserving advertising technologies that work without third-party cookies, including Topics API (interest-based targeting), Protected Audience (remarketing), and Attribution Reporting API.",
+        "adsContext": "Privacy Sandbox represents the future of measurement and targeting in Chrome. Topics API replaces interest targeting, Protected Audience enables privacy-safe remarketing, and Attribution Reporting provides aggregated conversion data without user-level tracking.",
+        "affectedPhases": ["Phase 3 (Targeting - Topics API for interest targeting, Protected Audience for remarketing)", "Phase 5 (Tracking - Attribution Reporting API for measurement)", "Phase 8 (AI/ML - New signals for ML models)"]
+      }
+    ]
   }
 }
