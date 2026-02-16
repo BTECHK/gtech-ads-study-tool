@@ -2536,6 +2536,882 @@
           "tools": ["Policy Manager", "Ad status column", "Appeal request", "Trademark authorization form", "Google Safe Browsing"]
         }
       ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Ad Serving & Click",
+      "phaseNumber": 4,
+      "priority": "must_know_cold",
+      "category": "web_tech",
+      "funnelStage": "Intent / Action",
+      "summary": "The complete technical journey from ad impression to landing page load, covering HTTP protocol, redirect chains, GCLID tracking, browser rendering, and web performance fundamentals",
+      "adsContext": "This phase covers the most interview-critical web technologies for a TSC role. Understanding HTTP flow, redirect chains for tracking, cookie mechanics, and Core Web Vitals is essential for diagnosing why conversions aren't tracking, landing pages are slow, or tags aren't firing. CSP blocking is the #1 cause of tag failures in the field.",
+      "dataFlowIn": "Winning ad from auction, user click event, GCLID parameters, tracking URLs, parallel tracking configuration",
+      "dataFlowOut": "Landing page rendered, GCLID stored in cookie (_gcl_aw), conversion tracking initialized, page performance metrics recorded",
+      "children": [
+        {
+          "id": "p4-1",
+          "name": "SERP Rendering & Ad Display",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "ad_display",
+          "definition": "The process by which Google renders ads on the Search Engine Results Page (SERP), including ad positioning, formatting, labeling requirements, and visual hierarchy alongside organic results.",
+          "adsContext": "Ads appear in designated positions on the SERP - typically above organic results (top ads) and below (bottom ads). Each ad position has different visibility and CTR expectations. Ad labels ('Sponsored' or 'Ad') are legally required and affect user perception.",
+          "tscRelevance": "TSCs need to explain why ad position matters for CTR, how ad extensions affect visual prominence, and why clients may see different ad appearances in different contexts (device, location, etc.).",
+          "keyDetails": [
+            "Top ads: Up to 4 ads above organic results - highest visibility, highest CTR, highest CPC",
+            "Bottom ads: Up to 3 ads below organic results - lower visibility but often cheaper CPCs",
+            "Ad labels: 'Sponsored' label required for regulatory compliance; previously 'Ad' label",
+            "Ad extensions: Sitelinks, callouts, structured snippets increase ad real estate and CTR",
+            "Mobile vs Desktop: Mobile typically shows fewer ads above fold; different extension rendering",
+            "Local ads: Map packs, location extensions show physical business proximity",
+            "Shopping ads: Product carousel with images, prices, ratings - separate ad format"
+          ],
+          "interviewQuestions": [
+            "Why might an ad appear in different positions for the same keyword at different times?",
+            "How do ad extensions affect ad visibility and performance on the SERP?",
+            "A client asks why their ad sometimes shows with extensions and sometimes doesn't. Explain."
+          ],
+          "sqlConnection": "Position data from reports can be analyzed to understand CTR by position, helping quantify the value of improved Ad Rank.",
+          "troubleshooting": {
+            "symptoms": [
+              "Ad not appearing despite winning auction",
+              "Ad extensions not showing",
+              "Ad appearing below organic results only",
+              "Different ad appearance across devices"
+            ],
+            "diagnosticQuestions": [
+              "What is the average position and impression share?",
+              "Are ad extensions eligible and approved?",
+              "What is the Ad Rank threshold for top positions?",
+              "Are there device-specific targeting or bid adjustments?"
+            ],
+            "causes": [
+              {
+                "issue": "Ad Rank below threshold for top positions",
+                "probability": "high",
+                "resolution": "Improve Quality Score or increase bids to achieve top position threshold",
+                "verification": "Check 'Search top impression share' and 'Search top IS lost (rank)' metrics"
+              },
+              {
+                "issue": "Ad extensions not meeting eligibility requirements",
+                "probability": "medium",
+                "resolution": "Review extension requirements - some require minimum Ad Rank, active status, or policy compliance",
+                "verification": "Check extension status in Ads & Assets section; review any disapproval reasons"
+              }
+            ]
+          },
+          "tools": ["Ad Preview and Diagnosis tool", "Search Impression Share columns", "Extension reports", "Device segments"]
+        },
+        {
+          "id": "p4-2",
+          "name": "Ad Click & Redirect Chain",
+          "parentId": "phase-4",
+          "priority": "must_know_cold",
+          "category": "tracking",
+          "definition": "The HTTP redirect sequence that occurs when a user clicks an ad, including GCLID parameter appending, 302 redirects from Google to advertiser, parallel tracking mechanisms, and the distinction between auto-tagging and manual tagging.",
+          "adsContext": "CRITICAL: When a user clicks a Google Ad, they don't go directly to the advertiser's site. Google intercepts the click, appends a GCLID (Google Click Identifier) parameter to the URL, and uses a 302 redirect to send the user to the final destination. The 302 status code is specifically used because it's a temporary redirect that preserves the original request method - this is how GCLID gets passed. Parallel tracking separates the user journey from tracking calls for faster page loads.",
+          "tscRelevance": "This is MUST KNOW COLD for interviews. TSCs diagnose tracking issues by understanding the redirect chain. If GCLID isn't appearing in URLs, conversions won't attribute to ads. Understanding 302 vs 301 redirects and parallel tracking is essential for troubleshooting.",
+          "keyDetails": [
+            "GCLID (Google Click Identifier): Unique click ID appended as URL parameter (?gclid=xyz) - required for conversion tracking",
+            "302 Redirect: HTTP status code for temporary redirect - Google uses this to pass GCLID while sending user to advertiser. 302 preserves POST data and is temporary, unlike 301 (permanent)",
+            "Click flow: User clicks ad → Request to Google → Google logs click, appends GCLID → 302 redirect to advertiser URL with GCLID → User lands on advertiser site",
+            "Parallel tracking: Sends user directly to landing page while tracking URL loads in background - faster user experience (100-500ms improvement)",
+            "Auto-tagging: Google automatically appends GCLID to URLs (recommended, default on) - ensures accurate conversion tracking",
+            "Manual tagging: UTM parameters (utm_source, utm_medium, utm_campaign) added manually - less accurate, doesn't track cross-device or view-through conversions",
+            "Final URL vs Tracking URL: Final URL is where user lands; Tracking template/URL suffix handles tracking parameters separately",
+            "URL parameters preserved: GCLID is appended to existing URL parameters, not replaced - watch for parameter conflicts"
+          ],
+          "interviewQuestions": [
+            "Walk me through the complete HTTP flow from when a user clicks an ad to when they land on the advertiser's page. Include status codes.",
+            "Why does Google use a 302 redirect instead of a 301 redirect for ad clicks?",
+            "A client's conversions dropped to zero but ads are still getting clicks. Where would you look first?",
+            "What is parallel tracking and why was it introduced?"
+          ],
+          "sqlConnection": "Click data includes GCLID values; conversion data links back via GCLID. SQL joins on GCLID enable click-to-conversion attribution analysis.",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversions not tracking despite clicks",
+              "GCLID not appearing in URLs",
+              "Conversion lag or missing conversions",
+              "Third-party tracking discrepancies"
+            ],
+            "diagnosticQuestions": [
+              "Is auto-tagging enabled in Google Ads settings?",
+              "Does the landing page/CMS strip URL parameters?",
+              "Are there redirect chains that lose the GCLID parameter?",
+              "Is parallel tracking enabled and configured correctly?"
+            ],
+            "causes": [
+              {
+                "issue": "Auto-tagging disabled in Google Ads account settings",
+                "probability": "high",
+                "resolution": "Enable auto-tagging in Account Settings > Auto-tagging",
+                "verification": "Click an ad and verify ?gclid= parameter appears in the URL"
+              },
+              {
+                "issue": "CMS or server-side redirects stripping URL parameters",
+                "probability": "high",
+                "resolution": "Configure server/CMS to preserve query parameters through redirects; check .htaccess or redirect rules",
+                "verification": "Test the redirect chain using a tool like redirect-checker.org or browser dev tools"
+              },
+              {
+                "issue": "Multiple redirects losing GCLID in the chain",
+                "probability": "medium",
+                "resolution": "Minimize redirect chains; ensure each redirect passes through URL parameters",
+                "verification": "Use browser Network tab to trace full redirect chain and check GCLID preservation"
+              },
+              {
+                "issue": "Parallel tracking URL template misconfigured",
+                "probability": "medium",
+                "resolution": "Review tracking template; ensure proper ValueTrack parameters ({lpurl}, {gclid}, etc.)",
+                "verification": "Test tracking template in Google Ads with 'Test' button; check for errors"
+              }
+            ]
+          },
+          "tools": ["Account Settings > Auto-tagging", "Tracking template tester", "Browser DevTools Network tab", "Tag Assistant", "Google Ads Diagnostics"]
+        },
+        {
+          "id": "p4-3",
+          "name": "DNS Resolution",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "networking",
+          "definition": "The Domain Name System (DNS) process that translates human-readable domain names (e.g., example.com) into IP addresses that computers use to identify each other on the network. DNS resolution is a foundational step before any HTTP connection can be established.",
+          "adsContext": "DNS resolution adds latency to page loads - typically 20-120ms. For ad landing pages, every millisecond matters for Core Web Vitals and conversion rates. CDN DNS strategies, TTL optimization, and dns-prefetch hints can significantly improve landing page performance.",
+          "tscRelevance": "TSCs need to understand DNS as a potential source of landing page slowness. When clients complain about slow pages, DNS misconfiguration or propagation issues can be the culprit, especially after domain or hosting changes.",
+          "keyDetails": [
+            "Recursive DNS query: Client asks resolver → resolver asks root → TLD → authoritative nameserver → IP returned",
+            "DNS caching: Responses cached at multiple levels (browser, OS, ISP resolver) based on TTL value",
+            "TTL (Time-to-Live): How long DNS records are cached (in seconds). Low TTL = faster propagation but more queries; high TTL = better performance but slower changes",
+            "Anycast routing: Same IP advertised from multiple locations - user routed to nearest DNS server for faster resolution",
+            "CDN DNS: CDNs use intelligent DNS to route users to nearest edge server; Cloudflare, Akamai, Fastly all use this",
+            "dns-prefetch hint: Browser directive (<link rel='dns-prefetch' href='//example.com'>) to resolve domains before they're needed",
+            "DNS propagation: Changes to DNS records can take 24-48 hours to propagate globally due to caching at various levels",
+            "Common record types: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), TXT (verification, SPF, DKIM)"
+          ],
+          "interviewQuestions": [
+            "Explain the DNS resolution process from when a user types a URL to when an IP address is returned.",
+            "A client changed their hosting provider and now their landing page is intermittently unreachable. What might be happening?",
+            "How can DNS configuration affect landing page performance and what optimizations would you suggest?"
+          ],
+          "sqlConnection": "While DNS data isn't directly in Google Ads reports, page load time metrics can indicate DNS issues when initial connection times are high.",
+          "troubleshooting": {
+            "symptoms": [
+              "Intermittent 'site not found' errors",
+              "Slow initial page loads",
+              "Landing page unreachable after hosting change",
+              "Different behavior for different users"
+            ],
+            "diagnosticQuestions": [
+              "Was there a recent DNS or hosting change?",
+              "Are the DNS records correctly configured?",
+              "What is the TTL setting on the records?",
+              "Is the issue consistent across all locations/ISPs?"
+            ],
+            "causes": [
+              {
+                "issue": "DNS propagation still in progress after changes",
+                "probability": "high",
+                "resolution": "Wait for TTL to expire across all resolvers (up to 48 hours); use low TTL before making changes",
+                "verification": "Check DNS propagation using tools like whatsmydns.net from multiple locations"
+              },
+              {
+                "issue": "DNS records pointing to old/incorrect IP",
+                "probability": "medium",
+                "resolution": "Update DNS records at registrar to point to correct server IP",
+                "verification": "Use dig or nslookup to verify current DNS resolution; compare to expected IP"
+              },
+              {
+                "issue": "No dns-prefetch hints for third-party resources",
+                "probability": "medium",
+                "resolution": "Add dns-prefetch hints in <head> for domains used by tracking pixels, CDN resources, etc.",
+                "verification": "Audit page for third-party domains; add prefetch hints and measure improvement"
+              }
+            ]
+          },
+          "tools": ["dig/nslookup", "whatsmydns.net", "Google DNS (8.8.8.8)", "Cloudflare DNS (1.1.1.1)", "PageSpeed Insights"]
+        },
+        {
+          "id": "p4-4",
+          "name": "TCP Three-Way Handshake",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "networking",
+          "definition": "The three-step process (SYN → SYN-ACK → ACK) used by TCP to establish a reliable connection between client and server before data can be exchanged. This is fundamental to all HTTP/HTTPS communication.",
+          "adsContext": "Every new connection to a landing page server requires a TCP handshake, adding one round-trip time (RTT) of latency. For users far from the server, this can add 50-200ms. Understanding TCP explains why CDNs (closer servers = lower RTT) and connection reuse (HTTP keep-alive) improve landing page performance.",
+          "tscRelevance": "TSCs should understand TCP basics to explain why geographic server location matters for performance, why CDNs help, and what connection-related errors mean in diagnostics.",
+          "keyDetails": [
+            "Three-way handshake: SYN (client initiates) → SYN-ACK (server acknowledges and initiates) → ACK (client acknowledges) → Connection established",
+            "RTT (Round Trip Time): Time for a packet to go from client to server and back - handshake requires 1 RTT minimum",
+            "Latency impact: Each handshake adds ~RTT to page load; for 100ms RTT, TCP alone adds 100ms before any data transfers",
+            "TCP slow start: New connections start with small congestion window, gradually increasing - affects initial transfer speed",
+            "HTTP Keep-Alive: Reuses existing TCP connection for multiple requests, avoiding repeated handshakes (Connection: keep-alive header)",
+            "Connection pooling: Browsers maintain pool of connections to each origin (typically 6 per domain in HTTP/1.1)",
+            "TCP Fast Open (TFO): Extension allowing data in SYN packet to reduce latency (requires server support)",
+            "Port 80 (HTTP) vs Port 443 (HTTPS): TCP connection established to specific port; HTTPS adds TLS handshake after TCP"
+          ],
+          "interviewQuestions": [
+            "Explain the TCP three-way handshake and why it's necessary.",
+            "How does geographic distance between user and server affect page load time?",
+            "What is HTTP Keep-Alive and why does it improve performance?"
+          ],
+          "sqlConnection": "Connection metrics aren't directly in Ads data, but correlate with landing page experience scores. High bounce rates from distant locations may indicate TCP latency issues.",
+          "troubleshooting": {
+            "symptoms": [
+              "Slow page loads for distant users",
+              "High Time to First Byte (TTFB)",
+              "Connection timeout errors",
+              "Inconsistent page load times"
+            ],
+            "diagnosticQuestions": [
+              "Where is the server geographically located?",
+              "Is a CDN in use to bring content closer to users?",
+              "Are connections being reused (Keep-Alive)?",
+              "What is the RTT to the server from key user locations?"
+            ],
+            "causes": [
+              {
+                "issue": "Server geographically far from target users",
+                "probability": "high",
+                "resolution": "Implement CDN to cache content at edge locations closer to users",
+                "verification": "Check TTFB from different locations using WebPageTest; compare with/without CDN"
+              },
+              {
+                "issue": "Keep-Alive disabled causing repeated handshakes",
+                "probability": "medium",
+                "resolution": "Enable Keep-Alive on server (Apache: KeepAlive On; Nginx: keepalive_timeout 65)",
+                "verification": "Check response headers for 'Connection: keep-alive'; monitor connection reuse in DevTools"
+              },
+              {
+                "issue": "Server overloaded causing handshake delays",
+                "probability": "medium",
+                "resolution": "Scale server resources, implement load balancing, or use CDN to offload traffic",
+                "verification": "Monitor server CPU/memory; check for SYN backlog issues in server logs"
+              }
+            ]
+          },
+          "tools": ["Browser DevTools (Timing tab)", "WebPageTest", "ping/traceroute", "CDN providers (Cloudflare, AWS CloudFront)", "curl --timing"]
+        },
+        {
+          "id": "p4-5",
+          "name": "TLS Handshake",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "security",
+          "definition": "The cryptographic handshake that establishes a secure HTTPS connection between client and server, negotiating encryption algorithms, validating server certificates, and exchanging keys for encrypted communication.",
+          "adsContext": "HTTPS is required for Google Ads landing pages. TLS handshakes add 1-2 RTT of latency (reduced in TLS 1.3). Certificate errors cause landing page warnings that tank conversion rates. Understanding TLS is essential for diagnosing 'mixed content' warnings and certificate issues.",
+          "tscRelevance": "TSCs troubleshoot HTTPS/certificate issues that prevent landing pages from loading properly or trigger browser security warnings. Understanding TLS versions helps explain performance differences.",
+          "keyDetails": [
+            "HTTPS required: Google Ads requires secure landing pages; HTTP pages show browser warnings and may be disapproved",
+            "TLS 1.2 handshake: 2 RTT - ClientHello → ServerHello + Certificate → Key Exchange → Finished (traditional, still common)",
+            "TLS 1.3 handshake: 1 RTT - Key exchange in ClientHello/ServerHello, encrypted earlier (modern, faster)",
+            "0-RTT resumption: TLS 1.3 feature allowing immediate data on resumed connections (with replay attack considerations)",
+            "Certificate validation: Browser verifies certificate chain from site cert → intermediate → root CA",
+            "Certificate errors: Expired, wrong domain, untrusted CA, incomplete chain - all cause browser warnings",
+            "Mixed content: HTTPS page loading HTTP resources triggers warnings or blocks; all resources must be HTTPS",
+            "HSTS (HTTP Strict Transport Security): Header telling browsers to always use HTTPS for the domain"
+          ],
+          "interviewQuestions": [
+            "What is the difference between TLS 1.2 and TLS 1.3 in terms of handshake latency?",
+            "A client's landing page shows 'Not Secure' in the browser. What are the possible causes?",
+            "Explain what 'mixed content' means and why it's a problem for landing pages."
+          ],
+          "sqlConnection": "TLS/certificate issues manifest as landing page disapprovals or high bounce rates that can be identified in campaign performance data.",
+          "troubleshooting": {
+            "symptoms": [
+              "Browser showing 'Not Secure' warning",
+              "Landing page disapproved for security reasons",
+              "Mixed content warnings in console",
+              "Certificate errors in browser"
+            ],
+            "diagnosticQuestions": [
+              "Is the SSL certificate valid and not expired?",
+              "Does the certificate cover the exact domain being used?",
+              "Are all page resources loaded over HTTPS?",
+              "Is the certificate chain complete?"
+            ],
+            "causes": [
+              {
+                "issue": "SSL certificate expired",
+                "probability": "high",
+                "resolution": "Renew certificate with CA or hosting provider; enable auto-renewal",
+                "verification": "Check certificate expiration in browser padlock or using SSL checker tools"
+              },
+              {
+                "issue": "Mixed content - HTTP resources on HTTPS page",
+                "probability": "high",
+                "resolution": "Update all resource URLs to HTTPS (images, scripts, stylesheets, iframes)",
+                "verification": "Check browser console for mixed content warnings; use why-no-padlock.com"
+              },
+              {
+                "issue": "Certificate doesn't match domain (www vs non-www)",
+                "probability": "medium",
+                "resolution": "Get certificate that covers both www and non-www (or use wildcard cert); implement proper redirects",
+                "verification": "Check certificate's Common Name and SAN entries against actual URL"
+              },
+              {
+                "issue": "Using outdated TLS version causing warnings or blocks",
+                "probability": "low",
+                "resolution": "Upgrade server to support TLS 1.2 minimum, preferably TLS 1.3",
+                "verification": "Use SSL Labs test (ssllabs.com/ssltest) to check supported TLS versions"
+              }
+            ]
+          },
+          "tools": ["SSL Labs Test", "Browser DevTools Security tab", "why-no-padlock.com", "Certificate transparency logs", "OpenSSL commands"]
+        },
+        {
+          "id": "p4-6",
+          "name": "HTTP Protocol Deep Dive",
+          "parentId": "phase-4",
+          "priority": "must_know_cold",
+          "category": "web_protocols",
+          "definition": "The HyperText Transfer Protocol (HTTP) is the foundation of web communication, defining how clients request resources and servers respond. Understanding HTTP methods, status codes, and headers is essential for web troubleshooting.",
+          "adsContext": "HTTP is the language of the web and critical for ad tracking. The 302 status code is how GCLID gets passed through redirects. Headers like Location (redirects), Cookie (tracking), Content-Type (parsing), and CSP (security) directly impact ad tag functionality. This is MUST KNOW COLD for TSC interviews.",
+          "tscRelevance": "TSCs use HTTP knowledge daily: diagnosing redirect chains (301 vs 302), understanding why tags fail (CSP blocking), troubleshooting caching issues (Cache-Control), and verifying tracking requests in Network tab.",
+          "keyDetails": [
+            "HTTP request structure: Method + URL + Headers + Body (for POST/PUT)",
+            "HTTP response structure: Status Code + Status Text + Headers + Body",
+            "Request/Response cycle: Client sends request → Server processes → Server sends response → Client renders"
+          ],
+          "interviewQuestions": [
+            "What is the difference between GET and POST requests? When would you use each?",
+            "Explain the difference between 301 and 302 redirects. Why does Google use 302 for ad click tracking?",
+            "A client reports their landing page is loading a cached version. What headers would you check?"
+          ],
+          "sqlConnection": "HTTP logs can be joined with conversion data to analyze request patterns. Status code distribution helps identify landing page reliability issues.",
+          "troubleshooting": {
+            "symptoms": [
+              "Page not loading (various HTTP errors)",
+              "Redirects not working as expected",
+              "Caching causing stale content",
+              "CORS errors blocking resources"
+            ],
+            "diagnosticQuestions": [
+              "What status code is being returned?",
+              "What do the response headers show?",
+              "Is there a redirect chain?",
+              "Are there CORS or CSP headers blocking requests?"
+            ],
+            "causes": [
+              {
+                "issue": "302 redirect not preserving URL parameters (GCLID lost)",
+                "probability": "high",
+                "resolution": "Configure redirect to append query string: redirected_url + $query_string",
+                "verification": "Trace redirect in Network tab; verify GCLID appears in final URL"
+              },
+              {
+                "issue": "301 redirect caching causing issues after URL change",
+                "probability": "medium",
+                "resolution": "301s are cached by browsers; users may need to clear cache. Consider using 302 for temporary redirects",
+                "verification": "Check if 301 was previously set; test in incognito mode"
+              },
+              {
+                "issue": "5xx errors indicating server problems",
+                "probability": "medium",
+                "resolution": "Check server logs, resource usage, and application errors",
+                "verification": "Review server error logs; check if error is consistent or intermittent"
+              }
+            ]
+          },
+          "tools": ["Browser DevTools Network tab", "curl -I (headers)", "Postman", "HTTP archive (HAR) files", "Server access logs"],
+          "children": [
+            {
+              "id": "p4-6-1",
+              "name": "HTTP Methods",
+              "parentId": "p4-6",
+              "priority": "must_know_cold",
+              "category": "http",
+              "definition": "HTTP methods (also called verbs) define the action to be performed on a resource. Different methods have different semantics for idempotency, caching, and request body handling.",
+              "adsContext": "Most ad tracking uses GET requests for pixel firing and beacon calls. Form submissions use POST. Understanding methods helps debug why tracking requests may fail or behave differently.",
+              "tscRelevance": "TSCs need to identify request methods in Network tab to understand what's happening with tracking pixels, form submissions, and API calls.",
+              "keyDetails": [
+                "GET: Retrieve resource; should not modify server state; cacheable; no request body; used for most ad pixels",
+                "POST: Submit data to server; may modify state; not cacheable by default; has request body; used for form submissions",
+                "PUT: Replace entire resource; idempotent (repeating gives same result); has request body",
+                "PATCH: Partial update to resource; not necessarily idempotent; has request body",
+                "DELETE: Remove resource; idempotent; usually no request body",
+                "OPTIONS: Preflight request for CORS; asks server what methods/headers are allowed",
+                "HEAD: Same as GET but returns only headers, no body; used to check resource metadata"
+              ],
+              "interviewQuestions": [
+                "Name all HTTP methods and give a use case for each.",
+                "What does idempotent mean in the context of HTTP methods?",
+                "Why might a POST request show up in DevTools before the actual form submission?"
+              ],
+              "troubleshooting": {
+                "symptoms": [
+                  "405 Method Not Allowed error",
+                  "OPTIONS preflight failing",
+                  "Form submission not working"
+                ],
+                "causes": [
+                  {
+                    "issue": "Server not supporting required HTTP method",
+                    "probability": "medium",
+                    "resolution": "Configure server to accept the required method",
+                    "verification": "Test with curl using -X METHOD flag"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "p4-6-2",
+              "name": "HTTP Status Codes",
+              "parentId": "p4-6",
+              "priority": "must_know_cold",
+              "category": "http",
+              "definition": "Three-digit codes returned by servers indicating the result of an HTTP request. Status codes are grouped by first digit: 1xx (informational), 2xx (success), 3xx (redirection), 4xx (client error), 5xx (server error).",
+              "adsContext": "CRITICAL: 302 is how GCLID tracking works - Google uses 302 temporary redirects to pass the click ID. 301 vs 302 differences matter for SEO and tracking. 4xx errors cause landing page disapprovals. 5xx errors hurt Quality Score and user experience.",
+              "tscRelevance": "Status codes are the first thing TSCs check in Network tab. Knowing codes cold allows quick diagnosis: 403 = blocked, 404 = missing, 500 = server issue, 302 = redirect (check where).",
+              "keyDetails": [
+                "200 OK: Request succeeded; resource returned in response body",
+                "201 Created: Resource created successfully (typically after POST)",
+                "204 No Content: Success but no content returned (common for tracking pixels)",
+                "301 Moved Permanently: Resource permanently moved; browsers cache this redirect - use for SEO redirects",
+                "302 Found (Temporary Redirect): CRITICAL - Resource temporarily at different URL; not cached; used by Google for GCLID pass-through because it preserves the temporary nature and doesn't get cached",
+                "304 Not Modified: Resource hasn't changed; use cached version (conditional GET)",
+                "400 Bad Request: Malformed request syntax; server cannot process",
+                "401 Unauthorized: Authentication required; user not logged in",
+                "403 Forbidden: Server refuses request; user lacks permission even if authenticated",
+                "404 Not Found: Resource doesn't exist at URL; common landing page error",
+                "500 Internal Server Error: Generic server error; application crashed",
+                "502 Bad Gateway: Upstream server sent invalid response (proxy/load balancer issue)",
+                "503 Service Unavailable: Server temporarily down for maintenance or overload",
+                "504 Gateway Timeout: Upstream server didn't respond in time (proxy/load balancer timeout)"
+              ],
+              "interviewQuestions": [
+                "What is the difference between 301 and 302 redirects? Why does Google use 302 for ad click tracking?",
+                "Your ad shows 'Landing page not working' - what status codes might cause this?",
+                "Explain the difference between 401 and 403 status codes."
+              ],
+              "troubleshooting": {
+                "symptoms": [
+                  "Landing page disapproved",
+                  "Ad clicks not reaching landing page",
+                  "Tracking pixels not firing",
+                  "High bounce rate"
+                ],
+                "causes": [
+                  {
+                    "issue": "404 on landing page URL",
+                    "probability": "high",
+                    "resolution": "Fix URL to point to existing page; update final URL in ads",
+                    "verification": "Test URL directly; check for typos or deleted pages"
+                  },
+                  {
+                    "issue": "5xx server errors intermittently",
+                    "probability": "medium",
+                    "resolution": "Check server resources, error logs, application health",
+                    "verification": "Monitor server; set up alerting for 5xx errors"
+                  },
+                  {
+                    "issue": "301 redirect losing GCLID parameter",
+                    "probability": "high",
+                    "resolution": "Ensure redirect rule passes query string: RewriteRule ^old$ /new [R=301,QSA,L]",
+                    "verification": "Trace redirect with gclid parameter; verify it appears in final URL"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "p4-6-3",
+              "name": "HTTP Headers",
+              "parentId": "p4-6",
+              "priority": "must_know_cold",
+              "category": "http",
+              "definition": "Key-value pairs sent in HTTP requests and responses that provide metadata about the message, control caching, handle authentication, and configure security policies.",
+              "adsContext": "Headers are critical for ad tech. CSP headers block tags (most common tag failure cause). Cookie headers enable tracking. Cache-Control affects how fresh content is. CORS headers enable cross-origin tracking requests. Location header contains redirect destination.",
+              "tscRelevance": "TSCs must read headers to diagnose issues: CSP blocking GTM? Check Content-Security-Policy. Cookies not setting? Check Set-Cookie attributes. Page caching too long? Check Cache-Control.",
+              "keyDetails": [
+                "Host: Required header specifying the domain being requested (enables virtual hosting)",
+                "User-Agent: Browser/client identifier; used for analytics, compatibility detection",
+                "Accept: Content types client can handle (text/html, application/json, etc.)",
+                "Cookie: Sends stored cookies to server; used for session management and tracking",
+                "Set-Cookie: Server instructs browser to store a cookie (see cookie section for attributes)",
+                "Authorization: Credentials for authentication (Basic, Bearer token, etc.)",
+                "Referer: URL of page that linked to current request; note misspelling is in HTTP spec",
+                "Location: Used with 3xx redirects to specify destination URL (how redirect chains work)",
+                "Content-Type: MIME type of response body (text/html, application/json, image/png)",
+                "Cache-Control: Caching directives (max-age, no-cache, no-store, private, public)",
+                "Content-Security-Policy (CSP): CRITICAL - Security header that blocks inline scripts, eval, and external resources. Most common cause of GTM/tracking failures",
+                "Access-Control-Allow-Origin (CORS): Controls which origins can access resources; blocks cross-origin requests if misconfigured"
+              ],
+              "interviewQuestions": [
+                "What is the Content-Security-Policy header and how can it break tracking tags?",
+                "Explain how the Location header works with redirect status codes.",
+                "A tracking pixel request is blocked with a CORS error. What headers are involved and how would you fix it?"
+              ],
+              "troubleshooting": {
+                "symptoms": [
+                  "GTM/tracking tags not firing",
+                  "Tracking requests blocked in console",
+                  "Page caching preventing updates",
+                  "Cross-origin resource loading failures"
+                ],
+                "causes": [
+                  {
+                    "issue": "CSP blocking inline scripts or external resources",
+                    "probability": "very_high",
+                    "resolution": "Add required domains to CSP directive: script-src should include 'www.googletagmanager.com', 'www.google-analytics.com', etc.",
+                    "verification": "Check console for 'Refused to load' errors; review CSP header in response"
+                  },
+                  {
+                    "issue": "CORS blocking cross-origin tracking requests",
+                    "probability": "high",
+                    "resolution": "Server must return Access-Control-Allow-Origin header allowing the requesting origin",
+                    "verification": "Check console for CORS errors; verify OPTIONS preflight succeeds"
+                  },
+                  {
+                    "issue": "Cache-Control preventing page updates",
+                    "probability": "medium",
+                    "resolution": "Set appropriate Cache-Control: max-age=X or use no-cache for frequently changing content",
+                    "verification": "Check Cache-Control and Expires headers; test with cache-busting query string"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "p4-7",
+          "name": "Cookies in Ad Tracking",
+          "parentId": "phase-4",
+          "priority": "must_know_cold",
+          "category": "tracking",
+          "definition": "HTTP cookies are small pieces of data stored by browsers that enable state management, session tracking, and user identification across requests. Cookies are fundamental to ad tracking and attribution.",
+          "adsContext": "GCLID is stored in the _gcl_aw cookie for Google Ads conversion attribution. Understanding first-party vs third-party cookies, cookie attributes, and privacy restrictions (ITP, SameSite) is essential for diagnosing tracking failures. Third-party cookie deprecation (though delayed) is reshaping the industry.",
+          "tscRelevance": "TSCs troubleshoot cookie-related tracking issues daily: conversions not recording, cross-domain tracking failing, ITP blocking attribution. This is MUST KNOW COLD for interviews.",
+          "keyDetails": [
+            "First-party cookies: Set by the domain in the address bar; used for site preferences, sessions, and GCLID storage (_gcl_aw)",
+            "Third-party cookies: Set by external domains (via iframes/pixels); used for cross-site tracking; being deprecated/blocked",
+            "GCLID storage: Google Ads stores GCLID in _gcl_aw cookie (first-party) with ~90 day expiration",
+            "Cookie attributes - Domain: Which domain(s) receive the cookie; can be set to parent domain for subdomain sharing",
+            "Cookie attributes - Path: URL path restriction for when cookie is sent; typically '/' for all paths",
+            "Cookie attributes - Secure: Cookie only sent over HTTPS; required for SameSite=None",
+            "Cookie attributes - HttpOnly: Cookie not accessible via JavaScript; protects from XSS but limits reading in code",
+            "Cookie attributes - SameSite: Controls cross-site sending: Strict (same-site only), Lax (safe methods cross-site), None (all cross-site, requires Secure)",
+            "ITP (Intelligent Tracking Prevention): Safari restricts cookie lifetimes; first-party JS cookies capped at 7 days in some cases",
+            "SameSite=None; Secure: Required for any cookie that needs to work in third-party context (iframes, cross-site requests)"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between first-party and third-party cookies. How does this affect Google Ads tracking?",
+            "What is the _gcl_aw cookie and what role does it play in conversion tracking?",
+            "A client's Safari users show significantly fewer conversions than Chrome users. What might be happening?",
+            "Explain the SameSite cookie attribute and its values. Why was it introduced?"
+          ],
+          "sqlConnection": "Cookie data correlates with conversion attribution. SQL analysis can identify conversion tracking gaps by browser/device that may indicate cookie issues.",
+          "troubleshooting": {
+            "symptoms": [
+              "Conversions not tracking for some users",
+              "Safari/iOS conversion tracking much lower than expected",
+              "Cross-domain tracking failing",
+              "Conversion attribution issues"
+            ],
+            "diagnosticQuestions": [
+              "Are cookies being set correctly (check browser DevTools)?",
+              "What browser/device shows the issue?",
+              "Is the site using cross-domain tracking?",
+              "Are cookie attributes set correctly (SameSite, Secure)?"
+            ],
+            "causes": [
+              {
+                "issue": "ITP limiting cookie duration in Safari",
+                "probability": "high",
+                "resolution": "Implement server-side cookie setting, use first-party data, consider GA4's enhanced measurement",
+                "verification": "Check Safari cookie storage; compare Safari vs Chrome conversion rates"
+              },
+              {
+                "issue": "SameSite attribute blocking cross-site cookies",
+                "probability": "high",
+                "resolution": "Set SameSite=None; Secure for cookies needed in cross-site context (also requires HTTPS)",
+                "verification": "Check browser console for SameSite warnings; verify cookie attributes in DevTools"
+              },
+              {
+                "issue": "Third-party cookies blocked by browser settings or extensions",
+                "probability": "high",
+                "resolution": "Implement first-party tracking solutions; use Google Consent Mode; consider server-side tagging",
+                "verification": "Test with third-party cookies enabled/disabled; check for tracking blockers"
+              },
+              {
+                "issue": "Cookie domain not matching site domain",
+                "probability": "medium",
+                "resolution": "Ensure cookie domain attribute matches or is parent of current domain",
+                "verification": "Check cookie Domain attribute in DevTools Application tab"
+              }
+            ]
+          },
+          "tools": ["Browser DevTools Application tab (Cookies)", "EditThisCookie extension", "GA Debug extension", "Tag Assistant", "Safari Web Inspector"]
+        },
+        {
+          "id": "p4-8",
+          "name": "Browser Rendering Pipeline",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "performance",
+          "definition": "The sequence of steps a browser takes to convert HTML, CSS, and JavaScript into visible pixels on screen: parsing HTML to DOM, parsing CSS to CSSOM, building render tree, calculating layout, painting, and compositing.",
+          "adsContext": "Rendering performance directly affects Core Web Vitals and landing page experience, which impacts Quality Score. Render-blocking resources delay First Contentful Paint. Layout shifts during rendering cause poor CLS scores. Script loading strategy (async vs defer) affects when tracking tags execute.",
+          "tscRelevance": "TSCs need to explain why certain optimizations matter and diagnose slow landing pages. Understanding render-blocking resources helps explain why removing or deferring scripts improves performance.",
+          "keyDetails": [
+            "DOM (Document Object Model): Browser parses HTML into tree structure of elements; basis for page structure",
+            "CSSOM (CSS Object Model): Browser parses CSS into tree structure of styles; combined with DOM for rendering",
+            "Render tree: Combination of DOM and CSSOM; only visible elements included (no display:none, no <head>)",
+            "Layout (Reflow): Calculates exact position and size of each element; triggered by DOM/style changes affecting geometry",
+            "Paint: Draws pixels - text, colors, images, borders, shadows; multiple paint layers for complex pages",
+            "Composite: Combines paint layers in correct order; GPU-accelerated for transforms and opacity",
+            "Critical rendering path: Minimum steps needed to render above-the-fold content; optimize this for fast FCP",
+            "async script attribute: Loads script in parallel with parsing; executes immediately when ready (order not guaranteed)",
+            "defer script attribute: Loads script in parallel; executes after HTML parsing complete (order preserved)",
+            "Render-blocking resources: CSS and synchronous JS block rendering until loaded; minimize or defer these"
+          ],
+          "interviewQuestions": [
+            "Walk through the browser rendering pipeline from HTML to pixels on screen.",
+            "What is the difference between async and defer script attributes? When would you use each?",
+            "Why can CSS be render-blocking and how can you mitigate this?"
+          ],
+          "sqlConnection": "Rendering performance impacts page experience metrics. Slow render times correlate with high bounce rates visible in analytics data.",
+          "troubleshooting": {
+            "symptoms": [
+              "Slow Largest Contentful Paint (LCP)",
+              "Layout Shift issues (CLS)",
+              "Page appears to 'jump' while loading",
+              "Scripts not executing in expected order"
+            ],
+            "diagnosticQuestions": [
+              "What resources are render-blocking?",
+              "Are scripts using async/defer appropriately?",
+              "Are images causing layout shifts (missing dimensions)?",
+              "Is critical CSS inlined?"
+            ],
+            "causes": [
+              {
+                "issue": "Synchronous scripts blocking rendering",
+                "probability": "high",
+                "resolution": "Add async or defer attribute to non-critical scripts; move scripts to bottom of body",
+                "verification": "Check Network tab for blocking resources; use Coverage tool to find unused code"
+              },
+              {
+                "issue": "Large CSS files blocking render",
+                "probability": "medium",
+                "resolution": "Inline critical CSS; load non-critical CSS asynchronously; remove unused CSS",
+                "verification": "Check 'Render blocking resources' in Lighthouse; measure FCP before/after"
+              },
+              {
+                "issue": "Images without dimensions causing layout shifts",
+                "probability": "high",
+                "resolution": "Always include width and height attributes on images; use aspect-ratio CSS",
+                "verification": "Check CLS in DevTools Performance; identify shifting elements"
+              }
+            ]
+          },
+          "tools": ["DevTools Performance tab", "Lighthouse", "Coverage tool", "Performance Insights", "WebPageTest filmstrip"]
+        },
+        {
+          "id": "p4-9",
+          "name": "Core Web Vitals",
+          "parentId": "phase-4",
+          "priority": "must_know_cold",
+          "category": "performance",
+          "definition": "Google's standardized metrics for measuring user experience: Largest Contentful Paint (LCP) for loading, Interaction to Next Paint (INP) for interactivity, and Cumulative Layout Shift (CLS) for visual stability.",
+          "adsContext": "CRITICAL: Core Web Vitals directly affect Quality Score through the Landing Page Experience component. Poor Core Web Vitals = lower Quality Score = higher CPCs = worse ad positions. Google has explicitly tied these metrics to ad performance, making this essential knowledge for TSCs.",
+          "tscRelevance": "TSCs must explain Core Web Vitals to clients, diagnose which metric is failing, and recommend specific optimizations. This is MUST KNOW COLD - Google directly uses these for Quality Score and has made this a strategic focus.",
+          "keyDetails": [
+            "LCP (Largest Contentful Paint): Time until largest visible content element renders. Target: < 2.5 seconds. Measures perceived load speed.",
+            "INP (Interaction to Next Paint): Time from user interaction to visual feedback (replaced FID in March 2024). Target: < 200 milliseconds. Measures responsiveness.",
+            "CLS (Cumulative Layout Shift): Sum of unexpected layout shifts. Target: < 0.1. Measures visual stability (no jumping content).",
+            "Impact on Quality Score: Poor Core Web Vitals lower Landing Page Experience → lower Quality Score → higher CPC → worse position",
+            "Measurement: Chrome User Experience Report (CrUX) provides field data; Lighthouse provides lab data",
+            "75th percentile: Google uses 75th percentile of page loads for assessment (most users, not average)",
+            "Mobile vs Desktop: Separate scores; mobile often worse due to network/device constraints",
+            "PageSpeed Insights: Google tool showing both lab and field Core Web Vitals data with recommendations"
+          ],
+          "interviewQuestions": [
+            "Name the three Core Web Vitals and their target values. How do they affect Google Ads performance?",
+            "A client's Quality Score dropped and they haven't changed their ads or keywords. What would you check?",
+            "Explain the difference between lab data and field data for Core Web Vitals. Which does Google use for rankings?"
+          ],
+          "sqlConnection": "Core Web Vitals data from CrUX can be queried in BigQuery. Performance data correlates with conversion rates and Quality Score trends.",
+          "troubleshooting": {
+            "symptoms": [
+              "Landing Page Experience rating dropped",
+              "Quality Score decreased without ad changes",
+              "High bounce rate on landing pages",
+              "PageSpeed Insights showing poor scores"
+            ],
+            "diagnosticQuestions": [
+              "What are the Core Web Vitals scores (LCP, INP, CLS)?",
+              "Is this a lab data or field data issue?",
+              "What is the largest element for LCP?",
+              "What elements are causing layout shifts?"
+            ],
+            "causes": [
+              {
+                "issue": "Poor LCP due to large hero image",
+                "probability": "high",
+                "resolution": "Optimize and compress hero image; use next-gen formats (WebP); implement lazy loading for below-fold images; preload critical images",
+                "verification": "Check Lighthouse LCP element; measure image size and load time"
+              },
+              {
+                "issue": "Poor INP due to long JavaScript tasks",
+                "probability": "high",
+                "resolution": "Break up long tasks; use web workers; defer non-critical JS; optimize event handlers",
+                "verification": "Check Performance tab for long tasks; profile interaction handlers"
+              },
+              {
+                "issue": "Poor CLS due to ads/images loading without dimensions",
+                "probability": "high",
+                "resolution": "Reserve space for dynamic content; add width/height to images; avoid inserting content above existing content",
+                "verification": "Use Layout Shift debugging in DevTools; identify shifting elements"
+              },
+              {
+                "issue": "Slow server response time affecting all metrics",
+                "probability": "medium",
+                "resolution": "Improve server performance; use CDN; enable caching; optimize database queries",
+                "verification": "Check TTFB in Network tab; compare with CDN vs origin"
+              }
+            ]
+          },
+          "tools": ["PageSpeed Insights", "Chrome DevTools Lighthouse", "web.dev/measure", "Search Console Core Web Vitals report", "CrUX Dashboard"]
+        },
+        {
+          "id": "p4-10",
+          "name": "Front-End Performance Optimization",
+          "parentId": "phase-4",
+          "priority": "know_well",
+          "category": "performance",
+          "definition": "Techniques and best practices for improving web page load speed and responsiveness, including asset optimization, compression, caching, CDN usage, and resource hints.",
+          "adsContext": "Every 100ms of added page load time decreases conversion rates by ~7%. Landing page speed directly affects Quality Score through Landing Page Experience. TSCs recommend optimizations to improve both ad performance and user experience.",
+          "tscRelevance": "TSCs must provide actionable recommendations when clients have slow landing pages. Understanding optimization techniques allows specific, prioritized recommendations rather than generic advice.",
+          "keyDetails": [
+            "Minification: Remove unnecessary characters (whitespace, comments) from JS/CSS; reduces file size 10-30%",
+            "Compression: gzip (ubiquitous) or Brotli (newer, ~15-20% better) compress text resources; enable on server",
+            "Caching strategies: Cache-Control headers define browser caching; use versioned filenames for cache busting",
+            "CDN (Content Delivery Network): Distribute content to edge servers globally; reduces latency for distant users",
+            "Code splitting: Load only necessary JavaScript for current page; defer loading of other code chunks",
+            "Tree shaking: Remove unused code from bundles during build process",
+            "preconnect: <link rel='preconnect' href='//example.com'> - early connection to critical third-party domains",
+            "prefetch: <link rel='prefetch' href='/next-page.html'> - load resources for likely next navigation",
+            "preload: <link rel='preload' href='/critical.css' as='style'> - load critical resources early in current page",
+            "Image optimization: Use WebP/AVIF formats; responsive images (srcset); lazy loading; proper compression"
+          ],
+          "interviewQuestions": [
+            "A client's landing page takes 8 seconds to load. Walk through the optimizations you would recommend in priority order.",
+            "What is the difference between preconnect, prefetch, and preload hints?",
+            "Explain how a CDN improves page load performance."
+          ],
+          "sqlConnection": "Performance data can be correlated with conversion data to quantify the business impact of optimization improvements.",
+          "troubleshooting": {
+            "symptoms": [
+              "Slow page load time",
+              "Large JavaScript bundles",
+              "Uncompressed resources",
+              "No caching headers set"
+            ],
+            "diagnosticQuestions": [
+              "What is the total page weight?",
+              "Are resources being compressed?",
+              "Is caching properly configured?",
+              "Is a CDN in use?"
+            ],
+            "causes": [
+              {
+                "issue": "No compression enabled on server",
+                "probability": "high",
+                "resolution": "Enable gzip/Brotli compression in server config (Apache: mod_deflate, Nginx: gzip on)",
+                "verification": "Check Content-Encoding response header; use Lighthouse"
+              },
+              {
+                "issue": "Large unoptimized images",
+                "probability": "high",
+                "resolution": "Compress images; use WebP; implement responsive images; lazy load below-fold images",
+                "verification": "Check Network tab for image sizes; use Lighthouse image audits"
+              },
+              {
+                "issue": "No CDN causing high latency for distant users",
+                "probability": "medium",
+                "resolution": "Implement CDN (Cloudflare, AWS CloudFront, Fastly); configure caching rules",
+                "verification": "Test from multiple locations using WebPageTest; compare TTFB"
+              },
+              {
+                "issue": "No caching headers causing repeat downloads",
+                "probability": "medium",
+                "resolution": "Set Cache-Control: max-age for static assets; use versioned URLs for cache busting",
+                "verification": "Check Cache-Control headers; verify 304 responses on repeat visits"
+              }
+            ]
+          },
+          "tools": ["Lighthouse", "WebPageTest", "GTmetrix", "Cloudflare/CDN dashboards", "webpack-bundle-analyzer"]
+        },
+        {
+          "id": "p4-11",
+          "name": "Security Fundamentals",
+          "parentId": "phase-4",
+          "priority": "must_know_cold",
+          "category": "security",
+          "definition": "Web security concepts and mechanisms that protect users and sites from attacks, including authentication, authorization, cross-origin policies, and content security policies.",
+          "adsContext": "CSP (Content Security Policy) blocking is the #1 cause of tag implementation failures in the field. CORS issues prevent cross-domain tracking. XSS vulnerabilities can lead to ad fraud or malware injection. Understanding security is essential for diagnosing why tags don't work.",
+          "tscRelevance": "TSCs must diagnose security-related tag failures daily. 'Why is GTM not loading?' is often answered by checking CSP headers. This is MUST KNOW COLD - security knowledge separates junior from senior troubleshooting.",
+          "keyDetails": [
+            "AuthN (Authentication): Verifying identity - 'who are you?' (login, passwords, OAuth)",
+            "AuthZ (Authorization): Verifying permissions - 'what can you do?' (roles, permissions, ACLs)",
+            "OAuth 2.0: Authorization framework allowing third-party access without sharing credentials; uses access tokens",
+            "CORS (Cross-Origin Resource Sharing): Browser mechanism controlling cross-origin requests; requires server headers",
+            "CSP (Content-Security-Policy): CRITICAL - HTTP header controlling what resources can load. script-src directive blocks inline scripts and external domains not whitelisted. Most common cause of GTM/tag failures.",
+            "CSP directives: script-src (scripts), img-src (images), connect-src (fetch/XHR), frame-src (iframes), default-src (fallback)",
+            "CSP fix for GTM: script-src must include 'www.googletagmanager.com' and 'unsafe-inline' for GTM to work",
+            "XSS (Cross-Site Scripting): Injection of malicious scripts; CSP helps prevent; causes include unsanitized user input",
+            "CSRF (Cross-Site Request Forgery): Tricking users into making unwanted requests; prevented with CSRF tokens",
+            "SameSite cookies: Modern CSRF protection; Strict/Lax values limit cross-site cookie sending"
+          ],
+          "interviewQuestions": [
+            "What is CSP and how can it break Google Tag Manager? What would you check to diagnose?",
+            "Explain the difference between authentication and authorization.",
+            "A client reports that their tracking pixel isn't firing and the console shows a 'Refused to load script' error. What's happening and how do you fix it?"
+          ],
+          "sqlConnection": "Security issues may appear in log data as blocked requests or errors. Analysis can identify patterns in security-related failures.",
+          "troubleshooting": {
+            "symptoms": [
+              "GTM/tags not loading",
+              "Console showing 'Refused to load' errors",
+              "Cross-origin request blocked",
+              "Tracking pixels not firing"
+            ],
+            "diagnosticQuestions": [
+              "Is there a CSP header in the response?",
+              "What domains are blocked by CSP?",
+              "Are there CORS errors in the console?",
+              "What security headers are present?"
+            ],
+            "causes": [
+              {
+                "issue": "CSP blocking Google Tag Manager",
+                "probability": "very_high",
+                "resolution": "Add to script-src: 'www.googletagmanager.com' 'www.google-analytics.com' 'unsafe-inline' 'unsafe-eval' (or use nonce/hash)",
+                "verification": "Check console for CSP errors; review Content-Security-Policy header; test after update"
+              },
+              {
+                "issue": "CSP blocking tracking pixels (img-src)",
+                "probability": "high",
+                "resolution": "Add tracking domains to img-src directive; common: 'www.google.com' 'www.google-analytics.com'",
+                "verification": "Check for blocked image requests in console; verify img-src directive"
+              },
+              {
+                "issue": "CORS blocking analytics requests",
+                "probability": "medium",
+                "resolution": "Server must return Access-Control-Allow-Origin header; for credentials, must specify exact origin (not *)",
+                "verification": "Check OPTIONS preflight in Network tab; verify response headers"
+              },
+              {
+                "issue": "connect-src blocking beacon/fetch requests",
+                "probability": "medium",
+                "resolution": "Add tracking endpoints to connect-src: 'www.google-analytics.com' 'analytics.google.com'",
+                "verification": "Check for blocked XHR/fetch in console; review connect-src directive"
+              }
+            ]
+          },
+          "tools": ["Browser DevTools Console", "Browser DevTools Network tab", "Security Headers (securityheaders.com)", "CSP Evaluator", "Report-URI"]
+        }
+      ]
     }
   ],
   "crossCutting": {
