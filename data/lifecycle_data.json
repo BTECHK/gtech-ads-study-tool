@@ -4268,6 +4268,233 @@
           "tools": ["GTM Preview Mode", "Tag Assistant", "Browser DevTools (Network, Console)", "Google Ads Diagnostics", "Conversion Action Settings", "Consent Mode Checker"]
         }
       ]
+    },
+    {
+      "id": "phase-6",
+      "name": "Data Pipelines",
+      "phaseNumber": 6,
+      "priority": "must_know_cold",
+      "category": "databases_sql",
+      "funnelStage": "Action / Loyalty",
+      "summary": "Understanding data flow from ad interactions through reporting systems, SQL querying for analysis, BigQuery optimization, and choosing the right data architecture for advertising use cases",
+      "adsContext": "TSCs must understand how data flows from user interactions to actionable insights. This includes knowing SQL for data analysis, understanding BigQuery for cost-effective querying, and diagnosing data pipeline issues that affect reporting and optimization.",
+      "dataFlowIn": "Raw ad interaction data (clicks, impressions, conversions), GCLID attribution data, first-party customer data, campaign configuration",
+      "dataFlowOut": "Aggregated reports, dashboards, ML training data for Smart Bidding, audience segments, performance insights",
+      "children": [
+        {
+          "id": "p6-1",
+          "name": "End-to-End Data Flow",
+          "parentId": "phase-6",
+          "priority": "must_know_cold",
+          "category": "data_architecture",
+          "definition": "The complete journey of advertising data from user browser interaction through Google's servers, into reporting systems, and ultimately to analysis tools like BigQuery and dashboards.",
+          "adsContext": "Understanding data flow helps diagnose why reports show different numbers at different times, why data has latency, and why some metrics are estimates vs actuals. TSCs troubleshoot reporting discrepancies by understanding where in the pipeline issues occur.",
+          "tscRelevance": "Clients often ask 'why don't my numbers match?' - between Google Ads UI, BigQuery exports, and third-party tools. Understanding the data flow explains latency, processing delays, and data freshness expectations.",
+          "keyDetails": [
+            "Browser → Google servers: User clicks ad, event sent to Google within milliseconds, includes GCLID, timestamp, user signals",
+            "Google servers → Ads reporting: Click data processed, deduplicated, fraud-filtered (hours for basic metrics, up to 3 days for conversions)",
+            "Ads reporting → BigQuery Data Transfer: Scheduled exports (daily by default), can be hourly for near-real-time needs",
+            "BigQuery → SQL transformations: Raw data transformed via scheduled queries, views, or dbt pipelines",
+            "SQL → Dashboards: Looker Studio, Tableau, or custom dashboards query BigQuery for visualization",
+            "Latency by stage: Clicks appear in UI within hours, conversions take 24-72 hours, BigQuery export adds another day by default",
+            "Data freshness: UI shows near-real-time for basic metrics, BigQuery exports are T+1 by default (yesterday's data available today)",
+            "Attribution delays: Conversions attributed when they occur, but may adjust for days as attribution models recalculate"
+          ],
+          "interviewQuestions": [
+            "Walk me through how a click on a Google Ad becomes a row in a BigQuery table.",
+            "A client says their BigQuery numbers don't match Google Ads UI. What are the likely causes?",
+            "Why might conversion data change retroactively in reports?"
+          ],
+          "sqlConnection": "SELECT date, SUM(clicks) as total_clicks, SUM(impressions) as total_impressions FROM `project.dataset.p_ads_CampaignStats_*` WHERE _TABLE_SUFFIX BETWEEN '20240101' AND '20240131' GROUP BY date ORDER BY date; -- This query demonstrates pulling data from BigQuery Data Transfer tables"
+        },
+        {
+          "id": "p6-2",
+          "name": "Relational Database Concepts",
+          "parentId": "phase-6",
+          "priority": "must_know_cold",
+          "category": "database_fundamentals",
+          "definition": "Core concepts of relational databases including tables, relationships, keys, normalization, and ACID properties that form the foundation of structured data storage and SQL querying.",
+          "adsContext": "Google Ads data is inherently relational - accounts contain campaigns, campaigns contain ad groups, ad groups contain ads and keywords. Understanding relational concepts is essential for writing correct JOINs and understanding data models.",
+          "tscRelevance": "TSCs write SQL queries joining multiple tables (campaigns to ad_groups to keywords). Understanding primary/foreign keys, cardinality, and normalization prevents incorrect aggregations and duplicate counting.",
+          "keyDetails": [
+            "Tables: Collections of rows (records) and columns (fields) - like spreadsheets but with enforced structure",
+            "Rows (Records): Individual data entries - each row represents one entity (one campaign, one keyword, one click)",
+            "Columns (Fields): Attributes of entities - campaign_name, budget, status, etc.",
+            "Primary Key: Unique identifier for each row - campaign_id, ad_group_id - must be unique, cannot be null",
+            "Foreign Key: Column that references another table's primary key - ad_group.campaign_id references campaign.campaign_id",
+            "Relationships: One-to-many (campaign has many ad_groups), many-to-many (keywords can match many search terms and vice versa)",
+            "Normalization: Organizing data to reduce redundancy - campaign name stored once, referenced by ID in ad_groups",
+            "Denormalization: Adding redundancy for query performance - storing campaign_name in ad_group table to avoid JOINs",
+            "Indexing: Creating data structures for fast lookups - essential on frequently filtered/joined columns like date, campaign_id",
+            "ACID: Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent safety), Durability (permanent after commit)"
+          ],
+          "interviewQuestions": [
+            "Explain the relationship between primary keys and foreign keys using Google Ads as an example.",
+            "When would you denormalize data even though it adds redundancy?",
+            "Why are indexes important for query performance on large advertising datasets?"
+          ],
+          "sqlConnection": "-- Example showing relational structure:\n-- Primary key: campaign_id uniquely identifies each campaign\n-- Foreign key: ad_group.campaign_id references campaign.campaign_id\nSELECT c.campaign_name, ag.ad_group_name, SUM(stats.clicks) as clicks\nFROM campaigns c\nJOIN ad_groups ag ON c.campaign_id = ag.campaign_id\nJOIN ad_group_stats stats ON ag.ad_group_id = stats.ad_group_id\nGROUP BY c.campaign_name, ag.ad_group_name;"
+        },
+        {
+          "id": "p6-3",
+          "name": "Non-Relational Databases (NoSQL)",
+          "parentId": "phase-6",
+          "priority": "know_well",
+          "category": "database_alternatives",
+          "definition": "Database systems that store data in formats other than traditional relational tables, including document stores, key-value stores, wide-column stores, and graph databases, each optimized for specific use cases.",
+          "adsContext": "While Google Ads reporting primarily uses relational/columnar systems (BigQuery), understanding NoSQL helps TSCs understand real-time bidding systems, caching layers, and when clients' tech stacks might benefit from different database types.",
+          "tscRelevance": "TSCs may encounter clients using various database types in their data stack. Understanding trade-offs helps recommend appropriate solutions and diagnose integration issues.",
+          "keyDetails": [
+            "Document Stores (MongoDB, Firestore): Store JSON-like documents, flexible schema, good for varying data structures",
+            "Key-Value Stores (Redis, DynamoDB): Simple key→value lookups, extremely fast, great for caching and session storage",
+            "Wide-Column Stores (BigTable, Cassandra): Sparse tables with dynamic columns, excellent for time-series and IoT data",
+            "Graph Databases (Neo4j): Nodes and relationships, ideal for social networks, recommendation engines, fraud detection",
+            "When SQL: Complex joins, transactions, reporting, when data is structured and relationships are important",
+            "When NoSQL: High velocity writes, flexible schema, horizontal scaling needs, specific access patterns",
+            "Real-time bidding uses: Key-value for user profile lookups, wide-column for event streams, document for campaign configs",
+            "Hybrid approaches: Many systems use SQL for reporting + NoSQL for real-time operations"
+          ],
+          "interviewQuestions": [
+            "When would you recommend a client use a NoSQL database over a relational database?",
+            "What type of database would you use for storing real-time bidding signals that need sub-millisecond lookups?",
+            "How might a graph database be useful in advertising technology?"
+          ],
+          "sqlConnection": "-- While NoSQL databases don't use SQL, BigQuery can query nested/repeated fields (document-like):\nSELECT campaign.name, ARRAY_LENGTH(campaign.labels) as label_count\nFROM campaigns\nWHERE 'priority' IN UNNEST(campaign.labels);\n-- This shows SQL handling semi-structured data similar to document stores"
+        },
+        {
+          "id": "p6-4",
+          "name": "CAP Theorem",
+          "parentId": "phase-6",
+          "priority": "know_well",
+          "category": "distributed_systems",
+          "definition": "A fundamental theorem stating that distributed systems can only guarantee two of three properties: Consistency (all nodes see same data), Availability (every request gets a response), and Partition tolerance (system works despite network failures).",
+          "adsContext": "Google's advertising infrastructure makes strategic CAP trade-offs. Real-time bidding prioritizes availability (AP), while billing systems prioritize consistency (CP). Understanding these trade-offs explains why some Google Ads data is eventually consistent.",
+          "tscRelevance": "When clients ask why their data takes time to sync across systems, or why real-time reports differ from final reports, CAP theorem explains these architectural decisions.",
+          "keyDetails": [
+            "Consistency (C): Every read receives the most recent write - all nodes have same data at same time",
+            "Availability (A): Every request receives a response - system always responds, even if not latest data",
+            "Partition tolerance (P): System continues operating despite network partitions - required for distributed systems",
+            "CP systems: Prioritize consistency over availability - banking transactions, billing systems, inventory counts",
+            "AP systems: Prioritize availability over consistency - social media feeds, ad serving, analytics dashboards",
+            "Google Ads examples: Real-time bidding is AP (must respond, can use stale data), conversion attribution is CP (must be accurate)",
+            "Eventually consistent: AP systems that sync to consistency over time - common in reporting systems",
+            "Trade-off reality: Most distributed systems must handle partitions, so choice is really C vs A during failures"
+          ],
+          "interviewQuestions": [
+            "Explain CAP theorem and give an example of when you'd choose consistency over availability.",
+            "Why would Google's real-time bidding system prioritize availability over consistency?",
+            "How does eventual consistency apply to Google Ads reporting data?"
+          ],
+          "sqlConnection": "-- CAP affects how we query distributed systems:\n-- Stale reads might return outdated data in AP systems\n-- This query might show different results if run immediately after a campaign change:\nSELECT campaign_name, status, last_updated\nFROM campaigns\nWHERE last_updated > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 MINUTE);\n-- Understanding replication lag helps interpret results"
+        },
+        {
+          "id": "p6-5",
+          "name": "BigQuery Deep Dive",
+          "parentId": "phase-6",
+          "priority": "must_know_cold",
+          "category": "google_cloud",
+          "definition": "Google's serverless, highly scalable data warehouse optimized for analytical queries, featuring columnar storage, automatic scaling, and pay-per-query pricing that makes it ideal for advertising data analysis.",
+          "adsContext": "BigQuery is THE data warehouse for Google Ads data. Google Ads Data Transfer exports directly to BigQuery. Understanding columnar storage, partitioning for cost control, and BigQuery-specific functions is essential for TSC data work.",
+          "tscRelevance": "TSCs write BigQuery queries daily for client analysis. Understanding partitioning (CRITICAL for cost control), columnar storage advantages, and BigQuery-specific functions separates competent TSCs from excellent ones.",
+          "keyDetails": [
+            "Columnar storage: Data stored by column, not row - only reads columns needed for query, massive speed/cost savings for analytics",
+            "Partitioning: CRITICAL FOR COST - partition by date to limit data scanned. _TABLE_SUFFIX for date-sharded tables, PARTITION BY for modern tables",
+            "Clustering: Orders data within partitions by specified columns - reduces data scanned when filtering on those columns",
+            "Slots: Units of computational capacity - on-demand pricing charges per TB scanned, flat-rate buys slot reservations",
+            "Pricing: On-demand is $5/TB scanned (first 1TB free monthly) - partitioning can reduce costs 90%+",
+            "SAFE_DIVIDE: Prevents division by zero errors - SAFE_DIVIDE(conversions, clicks) returns NULL instead of error",
+            "UNNEST: Flattens repeated fields (arrays) into rows - essential for working with nested BigQuery structures",
+            "APPROX_COUNT_DISTINCT: Faster than exact COUNT(DISTINCT), 99% accurate, great for large datasets",
+            "Wildcard tables: Query multiple tables with pattern matching - FROM \\`project.dataset.table_*\\` WHERE _TABLE_SUFFIX BETWEEN dates"
+          ],
+          "interviewQuestions": [
+            "Why is partitioning critical for BigQuery cost control and how would you implement it for ads data?",
+            "Explain why columnar storage makes BigQuery fast for analytical queries but slow for row-level operations.",
+            "When would you use APPROX_COUNT_DISTINCT instead of COUNT(DISTINCT)?"
+          ],
+          "sqlConnection": "-- CRITICAL: Always partition by date to control costs!\n-- Without partitioning, this query scans entire table ($$$)\n-- With partitioning, only scans requested date range\nSELECT\n  campaign_name,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) as conversion_rate,\n  APPROX_COUNT_DISTINCT(user_id) as unique_users\nFROM `project.dataset.ads_data`\nWHERE DATE(timestamp) BETWEEN '2024-01-01' AND '2024-01-31'\n  AND _PARTITIONDATE BETWEEN '2024-01-01' AND '2024-01-31'\nGROUP BY campaign_name;\n\n-- UNNEST for working with arrays:\nSELECT campaign_name, label\nFROM `project.dataset.campaigns`,\nUNNEST(labels) as label\nWHERE label LIKE 'priority%';"
+        },
+        {
+          "id": "p6-6",
+          "name": "SQL Patterns for Ads",
+          "parentId": "phase-6",
+          "priority": "must_know_cold",
+          "category": "sql_skills",
+          "definition": "Essential SQL query patterns specifically used in advertising analytics, including performance aggregation, window functions for time series analysis, funnel analysis with CTEs, anomaly detection, budget pacing, and search term mining.",
+          "adsContext": "These SQL patterns are used daily by TSCs and data analysts working with Google Ads data. Mastering these patterns enables quick answers to client questions and efficient large-scale analysis.",
+          "tscRelevance": "TSCs are expected to write SQL queries during interviews and on the job. These patterns cover 90% of ads-related SQL work. Window functions (LAG, SUM OVER, ROW_NUMBER) are particularly heavily tested.",
+          "keyDetails": [
+            "Campaign performance aggregation: GROUP BY campaign with SUM for clicks, cost, conversions - the fundamental ads query",
+            "Window functions for trends: LAG() for comparing to previous periods, SUM() OVER for running totals, ROW_NUMBER() for ranking",
+            "Funnel analysis with CTEs: Chain CTEs for each funnel stage, calculate conversion rates between stages",
+            "Anomaly detection: Calculate percentage change from historical averages, flag deviations beyond thresholds",
+            "Budget pacing: Compare actual spend to expected spend based on elapsed time in period",
+            "Negative keyword mining: Find search terms with high impressions but low CTR or no conversions",
+            "Date functions: DATE_TRUNC for period aggregation, DATE_DIFF for time between events",
+            "CASE statements: Categorize data (performance tiers, campaign types) within queries"
+          ],
+          "interviewQuestions": [
+            "Write a query to compare this week's conversions to the same day last week for each campaign.",
+            "How would you identify search terms that should be added as negative keywords?",
+            "Write a query to calculate whether campaigns are pacing ahead or behind budget."
+          ],
+          "sqlConnection": "-- Pattern 1: Campaign Performance Report\nSELECT\n  campaign_name,\n  SUM(clicks) as total_clicks,\n  SUM(cost_micros)/1000000 as cost,\n  SUM(conversions) as total_conversions,\n  SAFE_DIVIDE(SUM(conversions), SUM(clicks)) * 100 as conv_rate_pct\nFROM `project.dataset.ads_data`\nWHERE date BETWEEN '2024-01-01' AND '2024-01-31'\nGROUP BY campaign_name\nORDER BY cost DESC;\n\n-- Pattern 2: Window Functions for Time Series (HEAVILY TESTED)\nSELECT\n  date,\n  campaign_name,\n  conversions,\n  LAG(conversions, 7) OVER (PARTITION BY campaign_name ORDER BY date) as conversions_7d_ago,\n  SUM(conversions) OVER (PARTITION BY campaign_name ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as rolling_7d_conversions,\n  ROW_NUMBER() OVER (PARTITION BY campaign_name ORDER BY conversions DESC) as rank_by_conversions\nFROM `project.dataset.daily_stats`;\n\n-- Pattern 3: Funnel Analysis with CTEs\nWITH impressions AS (\n  SELECT campaign_id, COUNT(*) as impression_count FROM events WHERE event_type = 'impression' GROUP BY 1\n),\nclicks AS (\n  SELECT campaign_id, COUNT(*) as click_count FROM events WHERE event_type = 'click' GROUP BY 1\n),\nconversions AS (\n  SELECT campaign_id, COUNT(*) as conversion_count FROM events WHERE event_type = 'conversion' GROUP BY 1\n)\nSELECT\n  i.campaign_id,\n  i.impression_count,\n  c.click_count,\n  cv.conversion_count,\n  SAFE_DIVIDE(c.click_count, i.impression_count) * 100 as ctr,\n  SAFE_DIVIDE(cv.conversion_count, c.click_count) * 100 as click_to_conv_rate\nFROM impressions i\nLEFT JOIN clicks c ON i.campaign_id = c.campaign_id\nLEFT JOIN conversions cv ON i.campaign_id = cv.campaign_id;\n\n-- Pattern 4: Anomaly Detection (% Change)\nSELECT\n  date,\n  campaign_name,\n  conversions,\n  avg_conversions_30d,\n  SAFE_DIVIDE(conversions - avg_conversions_30d, avg_conversions_30d) * 100 as pct_change_from_avg,\n  CASE\n    WHEN conversions < avg_conversions_30d * 0.5 THEN 'ALERT: Down >50%'\n    WHEN conversions > avg_conversions_30d * 1.5 THEN 'ALERT: Up >50%'\n    ELSE 'Normal'\n  END as anomaly_flag\nFROM (\n  SELECT\n    date,\n    campaign_name,\n    conversions,\n    AVG(conversions) OVER (PARTITION BY campaign_name ORDER BY date ROWS BETWEEN 30 PRECEDING AND 1 PRECEDING) as avg_conversions_30d\n  FROM `project.dataset.daily_stats`\n);\n\n-- Pattern 5: Budget Pacing Query\nSELECT\n  campaign_name,\n  monthly_budget,\n  month_to_date_spend,\n  days_elapsed,\n  days_in_month,\n  SAFE_DIVIDE(days_elapsed, days_in_month) as pct_time_elapsed,\n  SAFE_DIVIDE(month_to_date_spend, monthly_budget) as pct_budget_spent,\n  CASE\n    WHEN SAFE_DIVIDE(month_to_date_spend, monthly_budget) > SAFE_DIVIDE(days_elapsed, days_in_month) * 1.1 THEN 'Overpacing'\n    WHEN SAFE_DIVIDE(month_to_date_spend, monthly_budget) < SAFE_DIVIDE(days_elapsed, days_in_month) * 0.9 THEN 'Underpacing'\n    ELSE 'On Track'\n  END as pacing_status\nFROM campaign_budgets;\n\n-- Pattern 6: Negative Keyword Mining from Search Terms\nSELECT\n  search_term,\n  SUM(impressions) as impressions,\n  SUM(clicks) as clicks,\n  SAFE_DIVIDE(SUM(clicks), SUM(impressions)) * 100 as ctr,\n  SUM(conversions) as conversions,\n  SUM(cost_micros)/1000000 as cost\nFROM `project.dataset.search_terms_report`\nWHERE date BETWEEN '2024-01-01' AND '2024-01-31'\nGROUP BY search_term\nHAVING impressions > 100\n  AND (ctr < 1.0 OR conversions = 0)\nORDER BY cost DESC\nLIMIT 100;\n-- These are candidates for negative keywords: high spend, low CTR/conversions"
+        },
+        {
+          "id": "p6-7",
+          "name": "ETL vs ELT",
+          "parentId": "phase-6",
+          "priority": "know_well",
+          "category": "data_engineering",
+          "definition": "Two approaches to moving and transforming data: ETL (Extract, Transform, Load) transforms data before loading into the warehouse, while ELT (Extract, Load, Transform) loads raw data first and transforms using SQL in the warehouse.",
+          "adsContext": "Google's ecosystem follows the ELT pattern - raw ads data is loaded to BigQuery via Data Transfer, then transformed with SQL. This leverages BigQuery's processing power and preserves raw data for flexibility.",
+          "tscRelevance": "Understanding ELT explains why Google Ads Data Transfer exports raw data that needs transformation, and why SQL skills are essential for working with BigQuery.",
+          "keyDetails": [
+            "ETL (Extract-Transform-Load): Traditional approach - transform data in external tools before loading to warehouse",
+            "ELT (Extract-Load-Transform): Modern approach - load raw data, transform with SQL in warehouse",
+            "Why ETL existed: Warehouses were expensive/slow, so minimize data loaded by transforming first",
+            "Why ELT now: Cloud warehouses (BigQuery) are cheap and fast, raw data preserves flexibility",
+            "BigQuery Data Transfer: Loads raw Google Ads data (ELT pattern) - you transform with SQL",
+            "Benefits of ELT: Raw data preserved, transformations in SQL (version controlled), warehouse does heavy lifting",
+            "Benefits of ETL: Less storage needed, data arrives clean, good when source data is messy",
+            "Common ELT tools: dbt (SQL transformations), Dataform (Google's dbt equivalent), scheduled queries"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between ETL and ELT and when you'd use each.",
+            "Why does Google Ads Data Transfer follow an ELT pattern rather than ETL?",
+            "What are the advantages of transforming data in BigQuery rather than before loading?"
+          ],
+          "sqlConnection": "-- ELT Pattern: Transform raw ads data in BigQuery\n-- Step 1: Raw data loaded via Data Transfer (Extract & Load)\n-- Step 2: Transform with SQL (materialized views or scheduled queries)\n\n-- Create a transformed table from raw data\nCREATE OR REPLACE TABLE `project.dataset.campaign_daily_summary` AS\nSELECT\n  DATE(stats._PARTITIONTIME) as date,\n  campaigns.campaign_name,\n  campaigns.campaign_type,\n  SUM(stats.metrics_clicks) as clicks,\n  SUM(stats.metrics_impressions) as impressions,\n  SUM(stats.metrics_cost_micros)/1000000 as cost,\n  SAFE_DIVIDE(SUM(stats.metrics_clicks), SUM(stats.metrics_impressions)) * 100 as ctr\nFROM `project.dataset.p_ads_CampaignBasicStats_*` stats\nJOIN `project.dataset.p_ads_Campaign_*` campaigns\n  ON stats.campaign_id = campaigns.campaign_id\n  AND stats._TABLE_SUFFIX = campaigns._TABLE_SUFFIX\nWHERE stats._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))\nGROUP BY date, campaigns.campaign_name, campaigns.campaign_type;"
+        },
+        {
+          "id": "p6-8",
+          "name": "Batch vs Stream Processing",
+          "parentId": "phase-6",
+          "priority": "know_well",
+          "category": "data_processing",
+          "definition": "Two paradigms for processing data: batch processing handles data in scheduled chunks (hourly, daily), while stream processing handles data continuously as it arrives in real-time.",
+          "adsContext": "Google Ads uses both: batch for daily reporting and attribution, stream for real-time bidding and fraud detection. Understanding when each is appropriate helps diagnose why some data is delayed vs immediate.",
+          "tscRelevance": "TSCs explain to clients why conversion data takes time (batch attribution) while bid adjustments happen instantly (stream). This understanding prevents unrealistic expectations about data freshness.",
+          "keyDetails": [
+            "Batch processing: Process data in scheduled intervals - daily reports, weekly summaries, monthly billing",
+            "Stream processing: Process data continuously as events occur - real-time bidding, fraud detection, live dashboards",
+            "Batch advantages: Simpler, cheaper, can reprocess historical data, better for complex aggregations",
+            "Stream advantages: Low latency, real-time insights, immediate reactions to events",
+            "Google Ads batch: Daily conversion attribution, BigQuery exports, final reporting",
+            "Google Ads stream: RTB (real-time bidding), click fraud detection, Smart Bidding signals",
+            "Batch tools: BigQuery scheduled queries, Dataflow batch jobs, Airflow DAGs",
+            "Stream tools: Pub/Sub, Dataflow streaming, Apache Kafka, Apache Flink",
+            "When to use batch: Historical analysis, ETL/ELT, reporting that doesn't need real-time updates",
+            "When to use stream: Real-time decisions, alerting, time-sensitive data like bidding"
+          ],
+          "interviewQuestions": [
+            "When would you use batch processing vs stream processing for advertising data?",
+            "Why does Google Ads use stream processing for bidding but batch for conversion attribution?",
+            "What are the trade-offs between real-time dashboards (stream) vs daily dashboards (batch)?"
+          ],
+          "sqlConnection": "-- Batch: Scheduled query that runs daily to aggregate yesterday's data\n-- This would be scheduled to run at 2am daily\nCREATE OR REPLACE TABLE `project.dataset.daily_performance` AS\nSELECT\n  DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) as date,\n  campaign_id,\n  SUM(clicks) as clicks,\n  SUM(impressions) as impressions,\n  SUM(conversions) as conversions,\n  SUM(cost_micros)/1000000 as cost\nFROM `project.dataset.hourly_stats`\nWHERE DATE(timestamp) = DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)\nGROUP BY campaign_id;\n\n-- Stream: BigQuery supports streaming inserts for real-time data\n-- Streaming data can be queried immediately but has different cost model\n-- Example: Query recent streaming data with slight delay allowance\nSELECT\n  campaign_id,\n  COUNT(*) as recent_clicks\nFROM `project.dataset.click_stream`\nWHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 MINUTE)\nGROUP BY campaign_id;"
+        }
+      ]
     }
   ],
   "crossCutting": {
