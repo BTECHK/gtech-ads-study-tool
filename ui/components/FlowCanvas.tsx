@@ -78,6 +78,8 @@ export function FlowCanvas() {
     toggleExpanded,
     priorityFilter,
     searchQuery,
+    selectedKeyProcess,
+    setSidebarOpen,
   } = useStore();
   const data = lifecycleData as LifecycleData;
 
@@ -85,13 +87,14 @@ export function FlowCanvas() {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
-    const PHASE_WIDTH = 220;
-    const PHASE_HEIGHT = 140;
-    const CHILD_WIDTH = 180;
-    const CHILD_HEIGHT = 100;
-    const HORIZONTAL_GAP = 60;
-    const VERTICAL_GAP = 30;
-    const CHILD_START_Y = PHASE_HEIGHT + 80;
+    const PHASE_WIDTH = 240;
+    const PHASE_HEIGHT = 150;
+    const CHILD_WIDTH = 200;
+    const CHILD_HEIGHT = 110;
+    const HORIZONTAL_GAP = 100;
+    const VERTICAL_GAP = 50;
+    const CHILD_START_Y = PHASE_HEIGHT + 100;
+    const CHILD_HORIZONTAL_GAP = 40;
 
     // Track max children per phase for layout
     let currentX = 0;
@@ -137,7 +140,7 @@ export function FlowCanvas() {
           const row = Math.floor(childIndex / childrenPerRow);
           const col = childIndex % childrenPerRow;
 
-          const childX = currentX + col * (CHILD_WIDTH + 20);
+          const childX = currentX + col * (CHILD_WIDTH + CHILD_HORIZONTAL_GAP);
           const childY = CHILD_START_Y + row * (CHILD_HEIGHT + VERTICAL_GAP);
 
           const childMatches = anyChildMatchesFilters(child, priorityFilter, searchQuery);
@@ -206,9 +209,10 @@ export function FlowCanvas() {
         });
       }
 
-      // Calculate width for this phase column
-      const childrenCount = isExpanded && phase.children ? phase.children.length : 0;
-      const expandedChildWidth = isExpanded ? Math.max(PHASE_WIDTH, 2 * (CHILD_WIDTH + 20) + 80) : PHASE_WIDTH;
+      // Calculate width for this phase column with proper spacing
+      const expandedChildWidth = isExpanded && phase.children && phase.children.length > 0
+        ? Math.max(PHASE_WIDTH, 2 * (CHILD_WIDTH + CHILD_HORIZONTAL_GAP) + 60)
+        : PHASE_WIDTH;
       currentX += expandedChildWidth + HORIZONTAL_GAP;
     });
 
@@ -233,7 +237,7 @@ export function FlowCanvas() {
   }, [nodes, edges, setFlowNodes, setFlowEdges]);
 
   return (
-    <div className="w-full h-[calc(100vh-64px)]">
+    <div className="w-full h-[calc(100vh-64px)] relative">
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
@@ -241,13 +245,23 @@ export function FlowCanvas() {
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
-        minZoom={0.3}
-        maxZoom={1.5}
+        minZoom={0.2}
+        maxZoom={2}
         className="bg-gray-50"
+        defaultViewport={{ x: 50, y: 50, zoom: 0.8 }}
       >
         <Background color="#e2e8f0" gap={20} />
-        <Controls />
-        <MiniMap />
+        <Controls className="!left-4 !bottom-4" />
+        <MiniMap
+          className="!right-4 !bottom-4 !w-40 !h-24"
+          nodeColor={(node) => {
+            if (node.data?.isDimmed) return '#e5e7eb';
+            if (node.data?.priority === 'must_know_cold') return '#ef4444';
+            if (node.data?.priority === 'know_well') return '#f59e0b';
+            return '#3b82f6';
+          }}
+          maskColor="rgba(0, 0, 0, 0.1)"
+        />
       </ReactFlow>
     </div>
   );

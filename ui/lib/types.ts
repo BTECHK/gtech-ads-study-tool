@@ -44,6 +44,11 @@ export interface Troubleshooting {
   causes: TroubleshootingCause[];
 }
 
+export interface InterviewQA {
+  question: string;
+  answer: string;
+}
+
 export interface LifecycleNode {
   id: string;
   name: string;
@@ -54,7 +59,8 @@ export interface LifecycleNode {
   adsContext?: string;
   tscRelevance?: string;
   keyDetails?: string[];
-  interviewQuestions?: string[];
+  interviewQuestions?: string[]; // Legacy: simple question strings
+  interviewQA?: InterviewQA[]; // New: question + answer pairs
   sqlConnection?: string | null;
   troubleshooting?: Troubleshooting;
   tools?: string[];

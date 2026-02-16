@@ -76,9 +76,19 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
           {data.category.replace(/_/g, ' ')}
         </Badge>
         {data.childCount > 0 && (
-          data.isExpanded
-            ? <ChevronDown className="w-4 h-4 text-gray-400" />
-            : <ChevronRight className="w-4 h-4 text-gray-400" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onToggleExpand();
+            }}
+            className="p-0.5 hover:bg-gray-200 rounded transition-colors"
+            title={data.isExpanded ? 'Collapse' : 'Expand'}
+          >
+            {data.isExpanded
+              ? <ChevronDown className="w-4 h-4 text-gray-600" />
+              : <ChevronRight className="w-4 h-4 text-gray-600" />
+            }
+          </button>
         )}
       </div>
 

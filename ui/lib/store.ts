@@ -25,13 +25,17 @@ interface StoreState {
   setSidebarOpen: (open: boolean) => void;
   sidebarTab: 'detail' | 'ecosystem' | 'competitors' | 'privacy';
   setSidebarTab: (tab: 'detail' | 'ecosystem' | 'competitors' | 'privacy') => void;
+
+  // Key Processes
+  selectedKeyProcess: string | null;
+  setSelectedKeyProcess: (id: string | null) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
   selectedNodeId: null,
   setSelectedNodeId: (id) => set({ selectedNodeId: id, sidebarOpen: id !== null }),
 
-  expandedNodeIds: new Set(),
+  expandedNodeIds: new Set(['phase-1', 'phase-2', 'phase-3', 'phase-4', 'phase-5', 'phase-6', 'phase-7', 'phase-8']),
   toggleExpanded: (id) => set((state) => {
     const newSet = new Set(state.expandedNodeIds);
     if (newSet.has(id)) {
@@ -55,4 +59,7 @@ export const useStore = create<StoreState>((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   sidebarTab: 'detail',
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
+
+  selectedKeyProcess: null,
+  setSelectedKeyProcess: (id) => set({ selectedKeyProcess: id }),
 }));

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +12,7 @@ import { CompetitorPanel } from './CompetitorPanel';
 import { PrivacyPanel } from './PrivacyPanel';
 import lifecycleData from '@/data/lifecycle_data.json';
 import { LifecycleData, LifecycleNode } from '@/lib/types';
-import { Globe, Swords, Shield, FileText, X } from 'lucide-react';
+import { Globe, Swords, Shield, FileText, X, RotateCcw, Eye, EyeOff } from 'lucide-react';
 
 function findNodeById(nodes: LifecycleNode[], id: string): LifecycleNode | null {
   for (const node of nodes) {
@@ -29,6 +30,132 @@ const priorityColors: Record<string, string> = {
   know_well: 'bg-amber-500',
   conceptual_awareness: 'bg-blue-500',
 };
+
+// Flip card component for interview questions
+function InterviewQuestionsTab({ node }: { node: LifecycleNode }) {
+  const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+  const [showAllAnswers, setShowAllAnswers] = useState(false);
+
+  const toggleCard = (index: number) => {
+    const newFlipped = new Set(flippedCards);
+    if (newFlipped.has(index)) {
+      newFlipped.delete(index);
+    } else {
+      newFlipped.add(index);
+    }
+    setFlippedCards(newFlipped);
+  };
+
+  const toggleAllAnswers = () => {
+    if (showAllAnswers) {
+      setFlippedCards(new Set());
+    } else {
+      const allIndices = new Set(
+        (node.interviewQuestions || []).map((_, i) => i)
+      );
+      setFlippedCards(allIndices);
+    }
+    setShowAllAnswers(!showAllAnswers);
+  };
+
+  // Generate answer from node context if not provided
+  const generateAnswer = (question: string, index: number): string => {
+    // Check for interviewQA first
+    if (node.interviewQA && node.interviewQA[index]) {
+      return node.interviewQA[index].answer;
+    }
+
+    // Build contextual answer from node data
+    const parts: string[] = [];
+
+    if (node.definition) {
+      parts.push(node.definition);
+    }
+    if (node.adsContext) {
+      parts.push(`\n\nGoogle Ads Context: ${node.adsContext}`);
+    }
+    if (node.tscRelevance) {
+      parts.push(`\n\nTSC Relevance: ${node.tscRelevance}`);
+    }
+    if (node.keyDetails && node.keyDetails.length > 0) {
+      parts.push(`\n\nKey Points:\n• ${node.keyDetails.slice(0, 3).join('\n• ')}`);
+    }
+
+    return parts.length > 0
+      ? parts.join('')
+      : 'Refer to the Overview and Technical tabs for detailed information to construct your answer.';
+  };
+
+  if (!node.interviewQuestions || node.interviewQuestions.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8">
+        No interview questions available for this node.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-semibold text-sm text-gray-700">Interview Questions</h4>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs gap-1"
+          onClick={toggleAllAnswers}
+        >
+          {showAllAnswers ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+          {showAllAnswers ? 'Hide All' : 'Show All'}
+        </Button>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">Click a question to reveal the answer</p>
+      <div className="space-y-3">
+        {node.interviewQuestions.map((q, i) => {
+          const isFlipped = flippedCards.has(i);
+          return (
+            <div
+              key={i}
+              onClick={() => toggleCard(i)}
+              className={`
+                relative cursor-pointer rounded-lg transition-all duration-300 overflow-hidden
+                ${isFlipped
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200'
+                  : 'bg-gray-50 border border-gray-200 hover:border-blue-300 hover:bg-blue-50/30'
+                }
+              `}
+            >
+              <div className="p-3">
+                <div className="flex items-start gap-2">
+                  <span className={`
+                    font-bold text-xs px-2 py-0.5 rounded-full
+                    ${isFlipped ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}
+                  `}>
+                    Q{i + 1}
+                  </span>
+                  <p className="text-sm text-gray-700 flex-1">{q}</p>
+                  <RotateCcw className={`w-4 h-4 text-gray-400 transition-transform ${isFlipped ? 'rotate-180' : ''}`} />
+                </div>
+
+                {isFlipped && (
+                  <div className="mt-3 pt-3 border-t border-green-200">
+                    <div className="flex items-start gap-2">
+                      <span className="font-bold text-xs px-2 py-0.5 rounded-full bg-green-600 text-white">
+                        A
+                      </span>
+                      <div className="text-sm text-gray-600 flex-1 whitespace-pre-wrap">
+                        {generateAnswer(q, i)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function NodeDetailContent({ node }: { node: LifecycleNode }) {
   return (
@@ -81,7 +208,7 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
         </TabsContent>
 
         <TabsContent value="technical" className="space-y-4 mt-4">
-          {node.keyDetails && node.keyDetails.length > 0 && (
+          {node.keyDetails && node.keyDetails.length > 0 ? (
             <div>
               <h4 className="font-semibold text-sm text-gray-700 mb-2">Key Details</h4>
               <ul className="list-disc list-inside space-y-1">
@@ -90,7 +217,7 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
           {node.sqlConnection && (
             <div className="bg-purple-50 p-3 rounded-lg">
               <h4 className="font-semibold text-sm text-purple-700 mb-1">SQL Connection</h4>
@@ -107,6 +234,14 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+          {!node.keyDetails?.length && !node.sqlConnection && !node.tools?.length && (
+            <div className="text-center text-gray-500 py-8">
+              <p>No technical details available for this node.</p>
+              {node.children && node.children.length > 0 && (
+                <p className="text-xs mt-2">Expand this node to explore detailed sub-concepts.</p>
+              )}
             </div>
           )}
         </TabsContent>
@@ -171,23 +306,7 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
         </TabsContent>
 
         <TabsContent value="interview" className="space-y-4 mt-4">
-          {node.interviewQuestions && node.interviewQuestions.length > 0 ? (
-            <div>
-              <h4 className="font-semibold text-sm text-gray-700 mb-2">Interview Questions</h4>
-              <ul className="space-y-3">
-                {node.interviewQuestions.map((q, i) => (
-                  <li key={i} className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
-                    <span className="font-medium text-blue-600 mr-2">Q{i + 1}:</span>
-                    {q}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-8">
-              No interview questions available for this node.
-            </div>
-          )}
+          <InterviewQuestionsTab node={node} />
         </TabsContent>
       </ScrollArea>
     </Tabs>
@@ -209,7 +328,7 @@ export function DetailPanel() {
 
   return (
     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <SheetContent className="w-[450px] sm:w-[550px] p-0 flex flex-col">
+      <SheetContent className="w-[95vw] max-w-[500px] p-0 flex flex-col overflow-hidden">
         {/* Panel Navigation */}
         <div className="border-b px-2 py-2 bg-gray-50">
           <div className="flex items-center justify-between mb-2">

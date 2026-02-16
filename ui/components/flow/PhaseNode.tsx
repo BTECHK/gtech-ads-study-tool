@@ -59,9 +59,19 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
           Phase {data.phaseNumber}
         </span>
         {data.childCount > 0 && (
-          data.isExpanded
-            ? <ChevronDown className="w-5 h-5 text-gray-400" />
-            : <ChevronRight className="w-5 h-5 text-gray-400" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onToggleExpand();
+            }}
+            className="p-1 hover:bg-gray-200 rounded transition-colors"
+            title={data.isExpanded ? 'Collapse' : 'Expand'}
+          >
+            {data.isExpanded
+              ? <ChevronDown className="w-5 h-5 text-gray-600" />
+              : <ChevronRight className="w-5 h-5 text-gray-600" />
+            }
+          </button>
         )}
       </div>
 

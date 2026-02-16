@@ -1,6 +1,7 @@
 import { FlowCanvas } from '@/components/FlowCanvas';
 import { Header } from '@/components/Header';
 import { DetailPanel } from '@/components/panels/DetailPanel';
+import { KeyProcessWorkflow } from '@/components/KeyProcessWorkflow';
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <Header />
       <FlowCanvas />
       <DetailPanel />
+      <KeyProcessWorkflow />
     </main>
   );
 }
