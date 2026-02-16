@@ -744,6 +744,1144 @@
           ]
         }
       ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Targeting & Bidding",
+      "phaseNumber": 2,
+      "priority": "must_know_cold",
+      "category": "digital_marketing",
+      "funnelStage": "Consideration / Intent",
+      "summary": "Configuring keyword targeting, audience segmentation, bidding strategies, and budget allocation to reach the right users at the right price",
+      "adsContext": "Targeting and bidding are the core levers for campaign efficiency. Proper keyword strategy captures intent, audience targeting expands reach to qualified users, and bidding strategies optimize toward business outcomes. These settings directly control who sees ads and what you pay.",
+      "dataFlowIn": "Campaign structure from Phase 1, business goals (CPA/ROAS targets), first-party data, conversion tracking setup",
+      "dataFlowOut": "Live targeting configuration feeding into ad delivery and auction systems, bid signals for Smart Bidding algorithms",
+      "children": [
+        {
+          "id": "p2-1",
+          "name": "Keyword Targeting",
+          "parentId": "phase-2",
+          "priority": "must_know_cold",
+          "category": "targeting",
+          "definition": "The practice of selecting and configuring keywords that trigger Search ads when users enter matching queries. Keyword targeting has evolved from simple string matching to sophisticated ML-based semantic matching that considers user intent, context, and query signals.",
+          "adsContext": "Keywords are the foundation of Search advertising intent capture. Match type selection determines the balance between reach and relevance. The evolution toward ML-based matching means modern keyword strategy focuses more on intent themes than exact terms.",
+          "tscRelevance": "TSCs constantly troubleshoot keyword issues: keywords not triggering, triggering for wrong queries, or underperforming. Understanding match type behavior and the evolution to semantic matching is essential for diagnosing performance problems.",
+          "keyDetails": [
+            "Match types control how broadly Google interprets keywords: Exact (most restrictive) → Phrase → Broad (widest reach)",
+            "Evolution: String matching (pre-2021) → Semantic matching with ML, understanding synonyms and intent",
+            "Close variants: Even Exact match now includes misspellings, plurals, implied words, and reordering",
+            "Keyword Quality Score (1-10) affects ad rank and CPC; based on expected CTR, ad relevance, landing page experience",
+            "Search Terms Report reveals actual queries triggering ads - essential for negative keyword management"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between keyword match types with examples. When would you use each?",
+            "How has keyword matching evolved over the past few years, and how does that change keyword strategy?",
+            "A client says their exact match keywords are triggering for queries that seem unrelated. How do you explain this?"
+          ],
+          "sqlConnection": "Keyword performance analysis often involves joining keyword and search_terms tables. N-gram analysis via SQL identifies negative keyword opportunities by finding low-converting query patterns.",
+          "troubleshooting": {
+            "symptoms": [
+              "Keywords not triggering ads despite active status",
+              "Exact match showing for unexpected queries",
+              "High impressions but low CTR on keywords",
+              "Search terms report showing irrelevant queries",
+              "Keywords with 'Low search volume' status"
+            ],
+            "diagnosticQuestions": [
+              "What match type is the keyword using?",
+              "What does the Search Terms Report show for actual queries?",
+              "Is the keyword Quality Score below 4?",
+              "Are there conflicting negative keywords blocking the term?",
+              "What is the keyword status (eligible, low search volume, disapproved)?"
+            ],
+            "causes": [
+              {
+                "issue": "Negative keyword blocking positive keyword",
+                "probability": "high",
+                "resolution": "Review negative keyword lists at campaign and ad group level; remove or modify conflicting negatives",
+                "verification": "Check for negative keyword conflicts in Keywords > Negative Keywords, test with Keyword Diagnosis tool"
+              },
+              {
+                "issue": "Low Quality Score preventing competitive ad rank",
+                "probability": "high",
+                "resolution": "Improve QS components: write ads including the keyword, improve landing page relevance and speed",
+                "verification": "Add QS column and component columns; verify landing page matches keyword intent"
+              },
+              {
+                "issue": "Broad match triggering for semantically related but irrelevant queries",
+                "probability": "high",
+                "resolution": "Add negative keywords based on Search Terms Report analysis; consider phrase match for core terms",
+                "verification": "Review Search Terms Report, identify patterns in irrelevant queries to negative"
+              },
+              {
+                "issue": "Low search volume keywords not serving",
+                "probability": "medium",
+                "resolution": "Google pauses keywords with very few monthly searches; broaden match type or combine with related terms",
+                "verification": "Check keyword status column for 'Low search volume' label"
+              }
+            ]
+          },
+          "tools": ["Keyword Planner", "Search Terms Report", "Keyword Diagnosis", "Quality Score columns", "Google Ads Editor"],
+          "children": [
+            {
+              "id": "p2-1-1",
+              "name": "Exact Match",
+              "parentId": "p2-1",
+              "priority": "must_know_cold",
+              "category": "match_types",
+              "definition": "The most restrictive keyword match type, denoted by [square brackets], that shows ads for searches with the same meaning or intent as the keyword. Despite the name, exact match now uses semantic matching rather than literal string matching.",
+              "adsContext": "Exact match provides the highest relevance and typically best CTR/conversion rates. It evolved from literal matching to include close variants (misspellings, plurals, abbreviations, accents, implied words, same-intent reordering). Example: [running shoes] matches 'shoes for running' and 'running shoe'.",
+              "tscRelevance": "Clients often expect exact match to work like the old literal matching. TSCs must explain close variants and when to use exact match vs other types. Exact match is ideal for high-value, proven converting terms.",
+              "keyDetails": [
+                "Syntax: [keyword] - e.g., [running shoes]",
+                "Matches: Same meaning/intent, not just literal string. Includes close variants.",
+                "Close variants include: Misspellings, singular/plural, stemmings, abbreviations, accents, reordered words with same meaning, implied words, synonyms with same intent",
+                "Best for: High-value converting terms, brand terms, terms where you need maximum relevance control",
+                "Limitation: Lower reach than phrase/broad; may miss valuable long-tail variations"
+              ],
+              "interviewQuestions": [
+                "Give me examples of queries that would and wouldn't match exact match keyword [women's shoes].",
+                "A client is frustrated that their exact match keyword [buy car insurance] matched 'car insurance quotes'. Is this expected?",
+                "When would you recommend using exact match exclusively vs a mixed match type strategy?"
+              ],
+              "sqlConnection": "When analyzing keyword performance by match type, exact match keywords often show highest conversion rates. SQL filtering by match_type = 'EXACT' isolates this segment.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Exact match showing for queries client considers irrelevant",
+                  "Very low impression volume on exact match",
+                  "Exact match CPC higher than broad/phrase"
+                ],
+                "diagnosticQuestions": [
+                  "Are the triggered queries semantically related (same intent)?",
+                  "Is the keyword too narrow for meaningful volume?",
+                  "Are competitors bidding heavily on these exact terms?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Client expects old literal matching behavior",
+                    "probability": "high",
+                    "resolution": "Explain close variants and semantic matching evolution; use negatives to exclude specific unwanted queries",
+                    "verification": "Show Search Terms Report examples of matched queries, explain semantic relationship"
+                  },
+                  {
+                    "issue": "Exact match over-specified limiting volume",
+                    "probability": "medium",
+                    "resolution": "Add phrase or broad match keywords to capture additional relevant queries, use exact match data to inform expansion",
+                    "verification": "Check impression share metrics, look for 'Lost IS (budget)' vs 'Lost IS (rank)'"
+                  }
+                ]
+              },
+              "tools": ["Search Terms Report", "Keyword Diagnosis", "Impression Share columns"]
+            },
+            {
+              "id": "p2-1-2",
+              "name": "Phrase Match",
+              "parentId": "p2-1",
+              "priority": "must_know_cold",
+              "category": "match_types",
+              "definition": "A keyword match type, denoted by \"quotes\", that shows ads for searches including the meaning of the keyword. The search must include the keyword meaning in the same conceptual order, but can have words before or after.",
+              "adsContext": "Phrase match provides a middle ground between exact and broad. After the 2021 update, it absorbed the old Broad Match Modifier functionality, matching queries with the same meaning while preserving word order significance. Example: \"running shoes\" matches 'best running shoes for women' but might not match 'shoes designed for running trails'.",
+              "tscRelevance": "TSCs help clients understand the phrase match evolution post-BMM deprecation. Phrase match is often recommended as the default match type for campaigns seeking balance between reach and relevance.",
+              "keyDetails": [
+                "Syntax: \"keyword\" - e.g., \"running shoes\"",
+                "Matches: Queries that include the keyword meaning, preserving order where relevant to meaning",
+                "2021 update: Absorbed Broad Match Modifier behavior; now uses semantic matching",
+                "Will match: Additional words before/after, close variants, same-meaning paraphrases",
+                "Won't match: Queries where word order changes the meaning substantially",
+                "Best for: Balanced reach and relevance, most campaign types as a starting point"
+              ],
+              "interviewQuestions": [
+                "How did phrase match change when Broad Match Modifier was deprecated?",
+                "Give examples of what phrase match keyword \"tennis shoes\" would and wouldn't match.",
+                "A client wants to use BMM. What do you tell them?"
+              ],
+              "sqlConnection": "Phrase match analysis often focuses on query length distribution - phrase match tends to capture more long-tail than exact. SQL can bucket by query word count.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Phrase match still matching queries with different word order",
+                  "Reach lower than expected compared to old BMM",
+                  "Difficulty controlling which variations match"
+                ],
+                "diagnosticQuestions": [
+                  "Does the word order actually change the meaning?",
+                  "Are there sufficient negatives to filter unwanted variations?",
+                  "Is the phrase match keyword the right level of specificity?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Confusion about phrase match word order behavior",
+                    "probability": "high",
+                    "resolution": "Explain that order is preserved when it affects meaning; 'shoes running' would likely not match \"running shoes\" as the meaning differs",
+                    "verification": "Review Search Terms Report for order variations, verify semantic similarity"
+                  },
+                  {
+                    "issue": "Old BMM strategy not translating to new phrase match",
+                    "probability": "medium",
+                    "resolution": "Phrase match is narrower than old BMM; consider adding broad match with Smart Bidding for expansion",
+                    "verification": "Compare historical BMM reach to new phrase match volume"
+                  }
+                ]
+              },
+              "tools": ["Search Terms Report", "Keyword Planner", "Match Type column"]
+            },
+            {
+              "id": "p2-1-3",
+              "name": "Broad Match",
+              "parentId": "p2-1",
+              "priority": "must_know_cold",
+              "category": "match_types",
+              "definition": "The widest keyword match type with no special syntax that uses machine learning to match ads to relevant searches. Broad match considers query context, user signals, landing page content, and other keywords in the ad group to determine relevance.",
+              "adsContext": "Modern broad match leverages Google's ML to find converting queries beyond what advertisers might predict. It works best with Smart Bidding (Target CPA/ROAS) which can modulate bids based on conversion likelihood. Example: running shoes may match 'athletic footwear reviews', 'best sneakers for marathon', or 'comfortable gym trainers'.",
+              "tscRelevance": "TSCs frequently address broad match concerns: 'Why am I showing for these random queries?' The key is explaining ML-based expansion and the synergy with Smart Bidding. Broad match without Smart Bidding often wastes spend; with Smart Bidding, it finds incremental conversions.",
+              "keyDetails": [
+                "Syntax: No symbols - just the keyword: running shoes",
+                "ML signals used: Landing page content, other keywords in ad group, user's previous searches, location, time of day, device",
+                "Smart Bidding synergy: Broad match expands reach; Smart Bidding modulates bids based on conversion likelihood. Together they find high-value queries.",
+                "Risk without Smart Bidding: May trigger for low-intent queries with equal bids, wasting spend",
+                "Google's recommendation: Use broad match + Smart Bidding for all Search campaigns (though many advertisers are more conservative)"
+              ],
+              "interviewQuestions": [
+                "Why does Google recommend broad match with Smart Bidding? What's the risk of broad match with manual CPC?",
+                "A client wants to start with exact match only because they're worried about wasted spend. How do you advise them?",
+                "Explain how broad match uses signals beyond the keyword text itself."
+              ],
+              "sqlConnection": "Broad match query analysis benefits from clustering algorithms to identify query themes. SQL can calculate conversion rate by query length and word overlap with keywords.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Broad match triggering irrelevant queries",
+                  "High spend with low conversions on broad match",
+                  "Broad match cannibalizing exact/phrase match keywords",
+                  "Dramatic performance difference between broad and other match types"
+                ],
+                "diagnosticQuestions": [
+                  "Is Smart Bidding in use (Target CPA/ROAS)?",
+                  "Are there sufficient negatives from Search Terms Report analysis?",
+                  "What does the query-to-keyword relationship look like in search terms?",
+                  "Is there enough conversion data for Smart Bidding to optimize?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Broad match without Smart Bidding leading to uncontrolled spend",
+                    "probability": "high",
+                    "resolution": "Enable Target CPA or Target ROAS bidding so algorithm can modulate bids based on conversion likelihood",
+                    "verification": "Check bidding strategy; if manual CPC, either switch to Smart Bidding or use phrase/exact"
+                  },
+                  {
+                    "issue": "Insufficient negative keywords allowing irrelevant matches",
+                    "probability": "high",
+                    "resolution": "Weekly Search Terms Report review; add negatives for irrelevant query patterns",
+                    "verification": "Review Search Terms Report, identify irrelevant queries, add as negatives"
+                  },
+                  {
+                    "issue": "Broad match needs learning period with Smart Bidding",
+                    "probability": "medium",
+                    "resolution": "Allow 2-4 weeks for Smart Bidding to learn which broad match queries convert; don't judge early",
+                    "verification": "Check bid strategy status for 'Learning' label, monitor week-over-week trends"
+                  }
+                ]
+              },
+              "tools": ["Search Terms Report", "Bid Strategy Report", "Keyword Planner", "Recommendations tab"]
+            },
+            {
+              "id": "p2-1-4",
+              "name": "Negative Keywords",
+              "parentId": "p2-1",
+              "priority": "must_know_cold",
+              "category": "match_types",
+              "definition": "Keywords that prevent ads from showing when certain words or phrases are part of the search query. Negative keywords use match types (exact, phrase, broad) that work differently than positive keyword match types, applying more literally.",
+              "adsContext": "Negative keywords are essential for query refinement and preventing wasted spend. They can be applied at campaign level (affect all ad groups) or ad group level (affect only that ad group). Shared negative keyword lists enable efficient management across campaigns.",
+              "tscRelevance": "TSCs regularly help clients build and troubleshoot negative keyword lists. Common issues include: negatives blocking positive keywords, not understanding negative match type behavior, and failing to regularly mine Search Terms Report for new negatives.",
+              "keyDetails": [
+                "Negative match types are more literal than positive: Negative broad blocks any query containing all negative words in any order",
+                "Negative exact [keyword]: Blocks only that exact query",
+                "Negative phrase \"keyword\": Blocks queries containing that phrase in order",
+                "Negative broad keyword: Blocks queries containing all words (any order) - most common",
+                "Levels: Campaign-level negatives affect all ad groups; Ad group level affects only that ad group",
+                "Shared lists: Create once, apply to multiple campaigns for efficiency"
+              ],
+              "interviewQuestions": [
+                "Explain how negative match types differ from positive match types.",
+                "A client added negative keyword 'free' and now their 'gluten free recipes' ad isn't showing. Why?",
+                "How would you structure negative keyword lists for an e-commerce account?"
+              ],
+              "sqlConnection": "Search Terms Report analysis via SQL can identify negative keyword candidates by finding queries with low CTR, high cost, zero conversions, or specific word patterns indicating irrelevance.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Ads suddenly stopped showing for important keywords",
+                  "Negative keywords not blocking intended queries",
+                  "Confusion about which level negatives are applied",
+                  "Negative list conflicts with positive keywords"
+                ],
+                "diagnosticQuestions": [
+                  "Were negative keywords recently added at campaign or account level?",
+                  "What match type is the negative keyword using?",
+                  "Is the negative keyword in a shared list applied to multiple campaigns?",
+                  "Does the positive keyword contain words from the negative?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Negative broad keyword unintentionally blocking positive keywords",
+                    "probability": "high",
+                    "resolution": "Review negative match type; use phrase or exact negative match for precision",
+                    "verification": "Check for positive keywords containing negative keyword words; test with keyword diagnosis"
+                  },
+                  {
+                    "issue": "Shared negative list applied too broadly",
+                    "probability": "medium",
+                    "resolution": "Review shared list membership; consider campaign-specific lists for unique blocking needs",
+                    "verification": "Check Shared Library > Negative Keyword Lists for list assignments"
+                  },
+                  {
+                    "issue": "Campaign-level negative blocking ad group opportunities",
+                    "probability": "medium",
+                    "resolution": "Move negative to ad group level if it should only apply to specific ad groups",
+                    "verification": "Check negative keywords at both campaign and ad group levels"
+                  }
+                ]
+              },
+              "tools": ["Negative Keywords", "Shared Library", "Search Terms Report", "Keyword Diagnosis", "Google Ads Editor"]
+            }
+          ]
+        },
+        {
+          "id": "p2-2",
+          "name": "Audience Targeting",
+          "parentId": "phase-2",
+          "priority": "must_know_cold",
+          "category": "targeting",
+          "definition": "The practice of defining and reaching specific groups of users based on their demographics, interests, behaviors, and relationship with your business. Audience targeting can layer on top of keyword targeting (Observation mode) or replace it entirely (Targeting mode).",
+          "adsContext": "Audiences enable precision targeting beyond keywords. Google provides extensive pre-built audiences (In-Market, Affinity) and tools to create custom audiences from your data (Customer Match, Remarketing). Proper audience strategy improves ROAS by focusing spend on high-value users.",
+          "tscRelevance": "TSCs help clients understand audience options, troubleshoot audience sizing issues, and explain the critical difference between Observation and Targeting modes. Audience-related questions are common in technical interviews.",
+          "keyDetails": [
+            "Observation mode: Ads still serve to all users; audiences enable bid adjustments and reporting segments",
+            "Targeting mode: Ads ONLY serve to users in the selected audiences - restricts reach",
+            "Audience combinations: Create logical AND/OR rules to combine multiple audiences",
+            "Audience signals (PMax): Hints to algorithm, not hard targeting constraints",
+            "Privacy: Audience lists must meet minimum size requirements (1000 for Search remarketing, 100 for Display)"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between Observation and Targeting mode for audiences. When would you use each?",
+            "A client's remarketing list shows only 50 users. Why aren't ads serving to them on Search?",
+            "How do audience signals in Performance Max differ from audience targeting in standard campaigns?"
+          ],
+          "sqlConnection": "Audience performance analysis requires joining audience reports with conversion data. SQL can compare conversion rates and CPA across audience segments to identify high-value audiences.",
+          "troubleshooting": {
+            "symptoms": [
+              "Audience-targeted campaigns not spending",
+              "Lower reach than expected after adding audiences",
+              "Audiences showing in Audience Manager but not available in campaigns",
+              "Remarketing not serving ads to site visitors"
+            ],
+            "diagnosticQuestions": [
+              "Is the audience in Observation or Targeting mode?",
+              "What is the audience size (meets minimums)?",
+              "Is the audience tag/pixel firing correctly?",
+              "Are there conflicting audience exclusions?"
+            ],
+            "causes": [
+              {
+                "issue": "Targeting mode restricting reach unintentionally",
+                "probability": "high",
+                "resolution": "Switch to Observation mode if you want to reach all users while collecting audience data",
+                "verification": "Check audience setting dropdown for 'Observation' vs 'Targeting' selection"
+              },
+              {
+                "issue": "Audience size below minimum for campaign type",
+                "probability": "high",
+                "resolution": "Expand audience membership duration (e.g., 30 to 90 days), increase site traffic, or use Display (lower minimum)",
+                "verification": "Check Audience Manager for list size; Search requires 1000+, Display requires 100+"
+              },
+              {
+                "issue": "Remarketing tag not firing on all pages",
+                "probability": "medium",
+                "resolution": "Verify tag implementation via Google Tag Assistant or network tab; ensure tag is on all relevant pages",
+                "verification": "Use Google Tag Assistant browser extension to verify tag fires"
+              }
+            ]
+          },
+          "tools": ["Audience Manager", "Google Tag Assistant", "Audience Insights", "Combined Audiences"],
+          "children": [
+            {
+              "id": "p2-2-1",
+              "name": "In-Market Audiences",
+              "parentId": "p2-2",
+              "priority": "must_know_cold",
+              "category": "audience_types",
+              "definition": "Google-curated audiences of users who are actively researching or comparing products and services in a specific category, indicating near-term purchase intent based on their recent browsing behavior, searches, and content engagement.",
+              "adsContext": "In-Market audiences capture users in the consideration/decision phase of their journey. Example categories include 'Autos & Vehicles > Motor Vehicles > Motor Vehicles (Used)', 'Travel > Hotels & Accommodations', 'Software > Business Software > CRM Software'. These audiences show strong commercial intent.",
+              "tscRelevance": "TSCs recommend In-Market audiences for driving conversions from users close to purchase. They're especially effective as bid modifiers or targeting layers on Search campaigns. Understanding available categories helps match business to audience.",
+              "keyDetails": [
+                "Based on real-time purchase intent signals: recent searches, sites visited, content engaged with",
+                "Hundreds of categories covering major verticals: auto, real estate, travel, software, financial services, etc.",
+                "Best for: Lower-funnel campaigns focused on conversions and sales",
+                "Combine with keywords: Layer In-Market on Search to bid more for high-intent users searching your terms",
+                "Refreshed continuously: Users enter/exit based on behavior, not static membership"
+              ],
+              "interviewQuestions": [
+                "How does Google determine someone is 'in-market' for a product category?",
+                "Would you recommend using In-Market audiences in Targeting or Observation mode for a new Search campaign?",
+                "A client sells enterprise software. Which In-Market audiences might be relevant?"
+              ],
+              "sqlConnection": "Audience reports can segment conversions by In-Market category. SQL analysis helps identify which In-Market audiences drive best ROAS for bid modifier optimization.",
+              "troubleshooting": {
+                "symptoms": [
+                  "In-Market audience not driving expected conversions",
+                  "Can't find relevant In-Market category for niche business",
+                  "In-Market bid adjustments not impacting delivery"
+                ],
+                "diagnosticQuestions": [
+                  "Is the In-Market category accurately representing your customer?",
+                  "Is the audience in Targeting (restricting reach) or Observation mode?",
+                  "Are bid adjustments high enough to impact auction outcomes?"
+                ],
+                "causes": [
+                  {
+                    "issue": "In-Market category too broad or misaligned with product",
+                    "probability": "medium",
+                    "resolution": "Test multiple In-Market categories, use Audience Insights to verify overlap with converters",
+                    "verification": "Review Audience Insights for your converters to see which In-Market categories they belong to"
+                  },
+                  {
+                    "issue": "Bid adjustment too low to affect auction",
+                    "probability": "medium",
+                    "resolution": "Increase bid adjustment (try +20-50%) for In-Market audiences if data shows they convert better",
+                    "verification": "Compare conversion rate for In-Market audience vs all users to justify adjustment"
+                  }
+                ]
+              },
+              "tools": ["Audience Manager", "Audience Insights", "In-Market category browser"]
+            },
+            {
+              "id": "p2-2-2",
+              "name": "Affinity Audiences",
+              "parentId": "p2-2",
+              "priority": "must_know_cold",
+              "category": "audience_types",
+              "definition": "Google-curated audiences based on users' long-term interests, passions, and lifestyle characteristics rather than immediate purchase intent. Affinity audiences represent what users care about rather than what they're actively shopping for.",
+              "adsContext": "Affinity audiences are ideal for upper-funnel awareness and brand campaigns. Categories include 'Sports & Fitness > Sports Fans', 'Lifestyles & Hobbies > Pet Lovers', 'Media & Entertainment > Gamers'. They're broader than In-Market and better for reaching users before purchase intent forms.",
+              "tscRelevance": "TSCs help clients understand when to use Affinity vs In-Market. Affinity is for brand awareness and reaching users early in the journey; In-Market is for users closer to conversion. Using Affinity for direct response often disappoints.",
+              "keyDetails": [
+                "Based on long-term behavior patterns: frequent site visits, content consumption, lifestyle indicators",
+                "Broader than In-Market: Represents ongoing interests, not active purchase research",
+                "Best for: Awareness campaigns, brand building, YouTube, Display prospecting",
+                "Custom Affinity: Create your own based on interests, URLs, places, or apps (legacy, largely replaced by Custom Audiences)",
+                "Example: A running shoe brand might target 'Sports & Fitness > Running' Affinity rather than 'Footwear' In-Market"
+              ],
+              "interviewQuestions": [
+                "What's the key difference between Affinity and In-Market audiences?",
+                "When would you recommend Affinity audiences over In-Market?",
+                "A client wants to use Affinity audiences to drive immediate sales. What's your advice?"
+              ],
+              "sqlConnection": "Affinity audience analysis often focuses on assisted conversion metrics rather than last-click, as these audiences contribute to upper-funnel awareness.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Affinity campaigns have low direct conversion rates",
+                  "Reach is too broad/untargeted",
+                  "Difficulty measuring Affinity campaign value"
+                ],
+                "diagnosticQuestions": [
+                  "Is the campaign goal awareness/reach or direct response?",
+                  "Is attribution set to account for view-through and assisted conversions?",
+                  "Are Affinity audiences layered with other targeting or standalone?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Expecting direct response from awareness audience",
+                    "probability": "high",
+                    "resolution": "Set appropriate KPIs: reach, brand lift, view-through conversions rather than last-click conversions",
+                    "verification": "Review campaign goals, adjust attribution model, consider brand lift studies"
+                  },
+                  {
+                    "issue": "Affinity audience too broad without additional refinement",
+                    "probability": "medium",
+                    "resolution": "Combine Affinity with demographic, geographic, or contextual targeting to narrow",
+                    "verification": "Check combined audience sizes after adding layers"
+                  }
+                ]
+              },
+              "tools": ["Audience Manager", "Reach Planner", "Brand Lift studies", "Attribution Model Comparison"]
+            },
+            {
+              "id": "p2-2-3",
+              "name": "Custom Audiences",
+              "parentId": "p2-2",
+              "priority": "must_know_cold",
+              "category": "audience_types",
+              "definition": "Advertiser-created audiences based on keywords users have searched, URLs they've visited, or apps they've used. Custom Audiences allow targeting users with specific interests or behaviors not covered by Google's pre-built audiences.",
+              "adsContext": "Custom Audiences are powerful for niche targeting. You define the audience by entering keywords (representing interests/searches), URLs (sites your ideal customer visits), or apps (apps they use). Google finds users matching these signals. Replaced older Custom Affinity and Custom Intent audiences.",
+              "tscRelevance": "TSCs help clients build effective Custom Audiences by understanding their customer research behavior. Common mistakes include audiences that are too broad/narrow, or using URLs/keywords that don't represent the target customer accurately.",
+              "keyDetails": [
+                "Input options: Keywords (search interests), URLs (sites visited), Apps (app users)",
+                "Keywords: Google targets people who've searched these terms on Google properties",
+                "URLs: Google targets people with interests similar to visitors of these sites (NOT site visitors themselves)",
+                "Combined approach: Use multiple signals together for refined targeting",
+                "Best for: Niche targeting, competitor conquesting (target visitors of competitor sites), unique audience needs"
+              ],
+              "interviewQuestions": [
+                "How do Custom Audiences work with URLs? Is Google showing ads to visitors of those specific URLs?",
+                "A client wants to target users searching for competitor brand names. How would you set this up?",
+                "What's the difference between Custom Audiences and Remarketing?"
+              ],
+              "sqlConnection": "Custom audience performance can be compared against other audience types via audience segment reporting. SQL analysis identifies which custom audience definitions drive best results.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Custom audience too small/large for effective targeting",
+                  "Custom audience not reaching intended users",
+                  "Confusion about URL targeting behavior"
+                ],
+                "diagnosticQuestions": [
+                  "What signals (keywords/URLs/apps) define the audience?",
+                  "Are the signals specific enough to represent the target customer?",
+                  "Is the audience showing an estimated size in Audience Manager?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Expecting URL input to target actual site visitors",
+                    "probability": "high",
+                    "resolution": "Clarify that URL input targets users with similar interests to that site's visitors, not the visitors themselves. Use remarketing to target your own visitors.",
+                    "verification": "Explain Custom Audience methodology vs remarketing"
+                  },
+                  {
+                    "issue": "Keywords/URLs too broad leading to poor targeting",
+                    "probability": "medium",
+                    "resolution": "Use more specific, niche keywords and URLs representing actual customer research behavior",
+                    "verification": "Review audience definition, test with more specific signals"
+                  }
+                ]
+              },
+              "tools": ["Audience Manager", "Custom Audience creator", "Audience Insights"]
+            },
+            {
+              "id": "p2-2-4",
+              "name": "Customer Match",
+              "parentId": "p2-2",
+              "priority": "must_know_cold",
+              "category": "audience_types",
+              "definition": "First-party audience targeting using your own customer data (email addresses, phone numbers, mailing addresses) uploaded to Google Ads. Data is hashed and matched against Google users for targeting or exclusion.",
+              "adsContext": "Customer Match enables powerful CRM-based targeting: upsell to existing customers, re-engage lapsed buyers, exclude converters from acquisition campaigns, or create Similar Audiences based on your best customers. Match rates typically range 30-60% depending on data quality.",
+              "tscRelevance": "TSCs troubleshoot match rate issues, help clients understand privacy compliance requirements, and advise on Customer Match strategy. This is increasingly important as third-party cookies phase out.",
+              "keyDetails": [
+                "Data types accepted: Hashed emails (most common), phone numbers, mailing addresses, mobile device IDs",
+                "Hashing: SHA256 hashing required for privacy; Google Ads can hash on upload or accept pre-hashed data",
+                "Match rate: Typically 30-60%; affected by data quality, email type (personal vs work), data recency",
+                "Similar audiences: Google can create lookalike audiences based on your Customer Match list",
+                "Requirements: Accounts must meet spend thresholds and have good compliance history",
+                "Privacy: Must have proper consent to use customer data for advertising"
+              ],
+              "interviewQuestions": [
+                "A client's Customer Match list has a 20% match rate. What factors could cause low match rates?",
+                "Explain the privacy considerations when using Customer Match.",
+                "How would you use Customer Match for a subscription business with churned customers?"
+              ],
+              "sqlConnection": "Customer Match list creation often involves SQL to segment CRM data: high-value customers, churned users, recent purchasers, etc. before export for upload.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Low match rate on Customer Match list",
+                  "Customer Match list not available for use in campaigns",
+                  "Similar audiences not being created from Customer Match",
+                  "Account not eligible for Customer Match"
+                ],
+                "diagnosticQuestions": [
+                  "What is the data quality (personal vs business emails, data recency)?",
+                  "Is the list size meeting minimums (1000 matched users for Search)?",
+                  "Does the account meet eligibility requirements?",
+                  "Is proper consent documented for data use?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Data quality issues lowering match rate",
+                    "probability": "high",
+                    "resolution": "Use personal emails over business, ensure data is recent, normalize formatting (lowercase, remove spaces), include multiple identifiers per user",
+                    "verification": "Review match rate after upload, compare to benchmarks, try including phone numbers alongside emails"
+                  },
+                  {
+                    "issue": "Account doesn't meet eligibility requirements",
+                    "probability": "medium",
+                    "resolution": "Account needs 90+ days history, good compliance record, and sufficient spend. Escalate if requirements are met but feature unavailable.",
+                    "verification": "Check account age, policy history, verify Customer Match option appears in Audience Manager"
+                  },
+                  {
+                    "issue": "List too small after matching",
+                    "probability": "medium",
+                    "resolution": "Upload larger source lists or combine multiple customer segments. Search requires 1000 matched users minimum.",
+                    "verification": "Check matched size in Audience Manager after upload completes processing"
+                  }
+                ]
+              },
+              "tools": ["Audience Manager", "Customer Match upload", "Data File templates", "Policy Help Center"]
+            },
+            {
+              "id": "p2-2-5",
+              "name": "Remarketing Lists",
+              "parentId": "p2-2",
+              "priority": "must_know_cold",
+              "category": "audience_types",
+              "definition": "Audiences of users who have previously interacted with your website, app, or YouTube content. Remarketing enables re-engaging past visitors with tailored messaging based on their previous behavior and relationship with your business.",
+              "adsContext": "Remarketing is among the highest-ROI targeting methods because you're reaching users already familiar with your brand. Common segments include all site visitors, product page viewers, cart abandoners, past purchasers (for upsell/cross-sell or exclusion), and converters to exclude from acquisition campaigns.",
+              "tscRelevance": "TSCs frequently troubleshoot remarketing tag issues, help build effective remarketing lists, and advise on membership duration and list strategy. Understanding remarketing is essential for almost any Google Ads troubleshooting.",
+              "keyDetails": [
+                "Tag requirement: Google Ads tag (gtag.js) or Google Analytics linked audiences for website remarketing",
+                "List types: All visitors, page-specific visitors, converters, cart abandoners, video viewers (YouTube), app users",
+                "Membership duration: How long users stay in list (1-540 days); varies by purchase cycle",
+                "Minimum sizes: 100 for Display, 1000 for Search, 1000 for YouTube, 5000 for Similar Audiences",
+                "Dynamic remarketing: Show specific products users viewed (requires feed and enhanced tagging)",
+                "Frequency capping: Limit how often users see remarketing ads to prevent fatigue"
+              ],
+              "interviewQuestions": [
+                "Walk me through setting up remarketing for cart abandoners.",
+                "A client's remarketing campaigns are annoying customers. How do you address this?",
+                "What's the difference between rule-based remarketing lists and Google Analytics audiences for remarketing?"
+              ],
+              "sqlConnection": "Remarketing list performance analysis often segments by list type, membership duration, and recency. SQL can help analyze which remarketing segments drive best ROAS.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Remarketing list not populating with users",
+                  "Remarketing ads not serving despite eligible list",
+                  "Customers complaining about seeing too many ads",
+                  "Dynamic remarketing showing wrong products"
+                ],
+                "diagnosticQuestions": [
+                  "Is the remarketing tag firing correctly on all pages?",
+                  "Does the list meet minimum size requirements for the campaign type?",
+                  "What is the membership duration and is it appropriate for the sales cycle?",
+                  "Is frequency capping set appropriately?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Remarketing tag not installed or firing incorrectly",
+                    "probability": "high",
+                    "resolution": "Verify tag with Google Tag Assistant; ensure global site tag and event snippets are correctly implemented",
+                    "verification": "Use Tag Assistant Chrome extension, check network requests for tag fires"
+                  },
+                  {
+                    "issue": "List below minimum size for campaign type",
+                    "probability": "high",
+                    "resolution": "Wait for list to build, extend membership duration, increase site traffic, or use Display (lower minimum) while list builds",
+                    "verification": "Check list size in Audience Manager; Search needs 1000+, Display needs 100+"
+                  },
+                  {
+                    "issue": "No frequency capping leading to ad fatigue",
+                    "probability": "medium",
+                    "resolution": "Set frequency cap (e.g., 3-5 impressions per day/week per user), rotate creatives, and segment lists by recency",
+                    "verification": "Add frequency columns to reporting, check frequency distribution"
+                  },
+                  {
+                    "issue": "Dynamic remarketing feed mismatch",
+                    "probability": "medium",
+                    "resolution": "Verify product IDs in remarketing tag match feed IDs exactly; check feed for errors",
+                    "verification": "Review Merchant Center feed diagnostics, verify ID parameter in tag"
+                  }
+                ]
+              },
+              "tools": ["Audience Manager", "Google Tag Assistant", "Frequency columns", "Merchant Center (dynamic)", "Google Analytics Audiences"]
+            }
+          ]
+        },
+        {
+          "id": "p2-3",
+          "name": "Bidding Strategies",
+          "parentId": "phase-2",
+          "priority": "must_know_cold",
+          "category": "bidding",
+          "definition": "The algorithms and methods used to set bids in Google Ads auctions. Strategies range from full manual control (Manual CPC) to fully automated machine learning optimization (Smart Bidding strategies like Target CPA and Target ROAS).",
+          "adsContext": "Bidding strategy selection is one of the most impactful campaign decisions. Smart Bidding uses ML to optimize bids in real-time using signals unavailable to manual bidders (device, location, time, query, remarketing lists, browser, OS, etc.). Proper strategy matching to goals and sufficient conversion data are critical for success.",
+          "tscRelevance": "TSCs spend significant time on bidding strategy issues: strategies not meeting targets, learning periods resetting, insufficient data for optimization. Understanding when to use each strategy and troubleshooting Smart Bidding performance is essential.",
+          "keyDetails": [
+            "Manual strategies: Manual CPC, Enhanced CPC - advertiser sets bids, varying levels of automation",
+            "Smart Bidding strategies: Target CPA, Target ROAS, Maximize Conversions, Maximize Conversion Value - ML-optimized",
+            "Learning period: 1-2 weeks after major changes when algorithm is adjusting; performance may be volatile",
+            "Data requirements: Target CPA needs 30+ conversions/month for reliable optimization; Target ROAS needs 50+ with value tracking",
+            "Smart Bidding signals: Device, location, time of day, remarketing list, language, operating system, browser, actual search query"
+          ],
+          "interviewQuestions": [
+            "Explain the difference between Target CPA and Maximize Conversions. When would you use each?",
+            "A client's Target CPA strategy is in 'Learning' for 3 weeks. What's happening?",
+            "What signals does Smart Bidding use that aren't available to manual bidders?"
+          ],
+          "sqlConnection": "Bid strategy analysis often involves comparing periods before/after strategy changes. SQL can calculate rolling averages accounting for learning periods and segment by Smart Bidding signals.",
+          "troubleshooting": {
+            "symptoms": [
+              "CPA higher than target for extended period",
+              "Strategy stuck in Learning status",
+              "Dramatic performance swings after bid strategy change",
+              "Spend dropping after switching to Smart Bidding"
+            ],
+            "diagnosticQuestions": [
+              "What is the target (CPA/ROAS) and is it realistic based on historical data?",
+              "How many conversions is the campaign getting monthly?",
+              "Were any major changes made that would reset learning?",
+              "Is conversion tracking accurate and complete?"
+            ],
+            "causes": [
+              {
+                "issue": "Target CPA/ROAS set too aggressively",
+                "probability": "high",
+                "resolution": "Set targets 10-20% above historical performance, then gradually tighten as algorithm optimizes",
+                "verification": "Compare target to last 30-day average CPA/ROAS; target should be achievable"
+              },
+              {
+                "issue": "Insufficient conversion volume for Smart Bidding",
+                "probability": "high",
+                "resolution": "Consider micro-conversions (add-to-cart, signup) if primary conversions are low; alternatively use Maximize Clicks while building data",
+                "verification": "Check monthly conversion count; Target CPA needs 30+, Target ROAS needs 50+"
+              },
+              {
+                "issue": "Changes during learning period resetting algorithm",
+                "probability": "medium",
+                "resolution": "Avoid major changes (budget >30%, target changes, creative overhauls) during learning period",
+                "verification": "Check Change History for recent modifications that would trigger learning"
+              }
+            ]
+          },
+          "tools": ["Bid Strategy Report", "Change History", "Recommendations", "Performance Planner"],
+          "children": [
+            {
+              "id": "p2-3-1",
+              "name": "Manual CPC",
+              "parentId": "p2-3",
+              "priority": "must_know_cold",
+              "category": "bid_strategies",
+              "definition": "A bidding strategy where the advertiser manually sets maximum CPC bids at the keyword, ad group, or placement level. Provides full control but requires significant time and expertise to optimize effectively.",
+              "adsContext": "Manual CPC is increasingly rare as Smart Bidding improves, but remains useful for accounts with limited conversion data, unusual conversion patterns, or advertisers who need maximum control. It's also used during early testing phases before switching to automation.",
+              "tscRelevance": "TSCs help clients understand when manual bidding makes sense and when to graduate to Smart Bidding. Also important for troubleshooting why a client insists on manual when Smart Bidding would perform better.",
+              "keyDetails": [
+                "Full control: Set exact max CPC bids at keyword or ad group level",
+                "Bid adjustments: Layer on device, location, audience, schedule adjustments that multiply base bid",
+                "Time intensive: Requires regular monitoring and adjustment to stay competitive",
+                "No auction-time signals: Can't react to query-level or user-level signals in real-time",
+                "Use cases: Low conversion volume (<30/month), testing new campaigns, unusual attribution needs, client preference"
+              ],
+              "interviewQuestions": [
+                "When would you recommend Manual CPC over Smart Bidding?",
+                "A client refuses to use Smart Bidding. How do you optimize manual bidding?",
+                "Explain how bid adjustments work with Manual CPC base bids."
+              ],
+              "sqlConnection": "Manual CPC optimization benefits from keyword-level CPC analysis. SQL can identify keywords where CPC is significantly above/below targets for adjustment.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Impression share losses despite budget availability",
+                  "Position dropping without bid changes",
+                  "Time-consuming to maintain competitive bids"
+                ],
+                "diagnosticQuestions": [
+                  "Are bids competitive based on Keyword Planner estimates?",
+                  "How often are bids being reviewed and adjusted?",
+                  "What does Auction Insights show about competitive position?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Bids not keeping pace with market competition",
+                    "probability": "high",
+                    "resolution": "Review Auction Insights regularly, use Keyword Planner for bid estimates, consider switching to Smart Bidding",
+                    "verification": "Check impression share metrics, compare bid estimates to current bids"
+                  },
+                  {
+                    "issue": "Bid adjustments stacking unexpectedly",
+                    "probability": "medium",
+                    "resolution": "Review all bid adjustments; they multiply (e.g., +50% device × +30% location = +95% total)",
+                    "verification": "Calculate total possible bid adjustment by multiplying all active modifiers"
+                  }
+                ]
+              },
+              "tools": ["Keyword Planner", "Auction Insights", "Bid Simulator", "Recommendations"]
+            },
+            {
+              "id": "p2-3-2",
+              "name": "Enhanced CPC (eCPC)",
+              "parentId": "p2-3",
+              "priority": "must_know_cold",
+              "category": "bid_strategies",
+              "definition": "A semi-automated bidding strategy that adjusts manual CPC bids in real-time based on conversion likelihood. Google can raise bids for clicks more likely to convert and lower bids for those less likely, while respecting your manual bid as a baseline.",
+              "adsContext": "Enhanced CPC is a bridge between manual and Smart Bidding. It maintains your manual bid control while adding ML optimization for conversion likelihood. Previously could increase bids up to 30%, but now has no cap (though it aims to maintain average CPC near your manual bid over time).",
+              "tscRelevance": "TSCs help clients understand eCPC behavior and when it's appropriate vs fully automated strategies. It's good for clients wanting some automation but not ready to fully trust Smart Bidding.",
+              "keyDetails": [
+                "Baseline: Uses your manual bids as starting point, adjusts in real-time",
+                "Adjustment direction: Raises bids for likely conversions, lowers for unlikely",
+                "No cap currently: Historically limited to 30% increases, now uncapped but targets average CPC near manual bid",
+                "Requires conversion tracking: Without conversions, eCPC has nothing to optimize toward",
+                "Good transition: Useful for clients moving from manual to Smart Bidding gradually"
+              ],
+              "interviewQuestions": [
+                "How does Enhanced CPC differ from Target CPA?",
+                "A client is worried eCPC will spend more than their manual bids. What do you tell them?",
+                "When would you recommend eCPC over Manual CPC or full Smart Bidding?"
+              ],
+              "sqlConnection": "eCPC analysis can compare actual CPCs to manual bid settings to see how much the algorithm is adjusting.",
+              "troubleshooting": {
+                "symptoms": [
+                  "CPCs significantly higher than manual bids",
+                  "eCPC not seeming to improve conversions",
+                  "Unexpected spend patterns with eCPC enabled"
+                ],
+                "diagnosticQuestions": [
+                  "Is conversion tracking working correctly?",
+                  "Are there enough conversions for eCPC to learn?",
+                  "What's the average CPC vs manual bid over time?"
+                ],
+                "causes": [
+                  {
+                    "issue": "eCPC raising bids without conversion improvements",
+                    "probability": "medium",
+                    "resolution": "Verify conversion tracking; if correct but no improvement, consider switching to full Smart Bidding with more control",
+                    "verification": "Compare conversion rate and CPA before/after eCPC enablement"
+                  },
+                  {
+                    "issue": "Insufficient conversion volume for eCPC optimization",
+                    "probability": "medium",
+                    "resolution": "eCPC needs conversions to optimize; with very few, it can't learn patterns effectively",
+                    "verification": "Check monthly conversion volume; if very low, consider manual CPC or building conversion data first"
+                  }
+                ]
+              },
+              "tools": ["Bid Strategy Report", "Change History", "Conversion tracking"]
+            },
+            {
+              "id": "p2-3-3",
+              "name": "Target CPA",
+              "parentId": "p2-3",
+              "priority": "must_know_cold",
+              "category": "bid_strategies",
+              "definition": "A Smart Bidding strategy that automatically sets bids to get as many conversions as possible at or below a target cost-per-acquisition (CPA) that you specify. Uses machine learning to optimize bids in real-time using auction-time signals.",
+              "adsContext": "Target CPA is Google's most common Smart Bidding recommendation for conversion-focused campaigns. It requires sufficient conversion volume (30+/month recommended) and accurate conversion tracking. The algorithm optimizes for conversion volume at or around the target CPA over time.",
+              "tscRelevance": "TSCs troubleshoot Target CPA issues constantly: campaigns exceeding targets, stuck in learning, not spending. Understanding learning periods, realistic target setting, and data requirements is critical.",
+              "keyDetails": [
+                "Sets bids at auction time using ML signals (device, location, time, query, audience, etc.)",
+                "Target setting: Set based on historical CPA, ideally 10-20% above average initially",
+                "Learning period: 1-2 weeks after significant changes (budget, target, creative)",
+                "Data requirement: 30+ conversions per month for reliable optimization; fewer can still work but with more volatility",
+                "Does NOT guarantee exact CPA: Optimizes toward target over time; individual conversions may be above/below",
+                "Can limit spend: If target is very aggressive, algorithm may stop bidding to avoid overpaying"
+              ],
+              "interviewQuestions": [
+                "A client sets Target CPA at $20 but their average CPA is $35. What advice do you give?",
+                "How does Target CPA use auction-time signals that manual bidding can't access?",
+                "A campaign has been in 'Learning (limited)' for 3 weeks. What's happening and how do you fix it?"
+              ],
+              "sqlConnection": "Target CPA analysis benefits from tracking CPA trends over time, segmented by period (pre/post learning) and by key dimensions like device or audience.",
+              "troubleshooting": {
+                "symptoms": [
+                  "CPA consistently higher than target",
+                  "Campaign not spending budget",
+                  "Strategy stuck in 'Learning' or 'Learning (limited)'",
+                  "Dramatic CPA swings day to day"
+                ],
+                "diagnosticQuestions": [
+                  "What is historical CPA vs the target?",
+                  "How many conversions is the campaign getting monthly?",
+                  "Were there recent major changes that reset learning?",
+                  "Is conversion tracking accurate?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Target CPA set too aggressively below historical performance",
+                    "probability": "high",
+                    "resolution": "Set target 10-20% above historical average, then gradually lower as algorithm optimizes",
+                    "verification": "Compare target to last 30 days' actual CPA; target should be achievable based on history"
+                  },
+                  {
+                    "issue": "Insufficient conversion volume (< 30/month)",
+                    "probability": "high",
+                    "resolution": "Use micro-conversions, extend conversion window, consider Maximize Conversions without target while building data",
+                    "verification": "Check conversion column for last 30 days; if <30, data may be insufficient"
+                  },
+                  {
+                    "issue": "Frequent changes resetting learning period",
+                    "probability": "medium",
+                    "resolution": "Allow 2 weeks without major changes; avoid adjusting target, budget >30%, or major creative changes during learning",
+                    "verification": "Review Change History for modifications in past 2 weeks"
+                  },
+                  {
+                    "issue": "Conversion tracking issues causing bad data",
+                    "probability": "medium",
+                    "resolution": "Audit conversion tracking: check tag fires, attribution settings, conversion actions included",
+                    "verification": "Verify conversions in Google Ads match actual sales/leads, check for duplicate counting"
+                  }
+                ]
+              },
+              "tools": ["Bid Strategy Report", "Change History", "Conversion tracking", "Recommendations"]
+            },
+            {
+              "id": "p2-3-4",
+              "name": "Target ROAS",
+              "parentId": "p2-3",
+              "priority": "must_know_cold",
+              "category": "bid_strategies",
+              "definition": "A Smart Bidding strategy that sets bids to maximize conversion value while achieving a target return on ad spend (ROAS). Requires conversion value tracking and optimizes for revenue/profit rather than conversion volume.",
+              "adsContext": "Target ROAS is ideal for e-commerce and businesses where conversion values vary significantly. A 400% target ROAS means you want $4 revenue for every $1 spent. Requires more data than Target CPA (50+ conversions with value recommended) and accurate value tracking.",
+              "tscRelevance": "TSCs help e-commerce clients implement Target ROAS, troubleshoot value tracking issues, and set realistic targets. Understanding the difference between ROAS optimization and CPA optimization is key.",
+              "keyDetails": [
+                "ROAS calculation: (Conversion Value / Cost) × 100 = ROAS %. A 400% ROAS = 4:1 return",
+                "Requires conversion value: Must track actual revenue or assign values to conversion actions",
+                "Data requirement: 50+ conversions with value in past 30 days for optimal performance",
+                "Value variations: Works best when conversion values vary significantly (e.g., $10 vs $1000 orders)",
+                "Bid optimization: Bids higher for high-value conversions, lower for low-value, optimizing overall return"
+              ],
+              "interviewQuestions": [
+                "When would you recommend Target ROAS over Target CPA?",
+                "A client's Target ROAS is 600% but they're achieving 350%. What would you investigate?",
+                "How does Target ROAS handle conversions with different values?"
+              ],
+              "sqlConnection": "ROAS analysis requires accurate value tracking. SQL can calculate ROAS by segment (product category, audience, device) to identify high-value opportunities.",
+              "troubleshooting": {
+                "symptoms": [
+                  "ROAS significantly below target",
+                  "Campaign spending very little at high ROAS targets",
+                  "Inconsistent ROAS day-to-day",
+                  "Low-value conversions being prioritized"
+                ],
+                "diagnosticQuestions": [
+                  "What is historical ROAS vs the target?",
+                  "Is conversion value tracking accurate and complete?",
+                  "Are enough conversions with value being tracked monthly?",
+                  "Are there high-value conversion actions being missed?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Target ROAS too aggressive for market conditions",
+                    "probability": "high",
+                    "resolution": "Set target 10-20% below historical ROAS, then gradually increase as algorithm optimizes",
+                    "verification": "Compare target to last 30-60 days' actual ROAS"
+                  },
+                  {
+                    "issue": "Conversion value tracking missing or inaccurate",
+                    "probability": "high",
+                    "resolution": "Audit conversion value implementation; ensure actual transaction values are passed, not placeholder values",
+                    "verification": "Compare Google Ads conversion values to actual revenue data; check for placeholder/default values"
+                  },
+                  {
+                    "issue": "Insufficient conversions with value for optimization",
+                    "probability": "medium",
+                    "resolution": "Need 50+ conversions with value monthly; consider assigning values to micro-conversions or using Target CPA while building data",
+                    "verification": "Check conversion count with value in last 30 days"
+                  }
+                ]
+              },
+              "tools": ["Bid Strategy Report", "Conversion Value columns", "Ecommerce tracking", "Google Analytics Revenue data"]
+            },
+            {
+              "id": "p2-3-5",
+              "name": "Maximize Conversions / Maximize Conversion Value",
+              "parentId": "p2-3",
+              "priority": "must_know_cold",
+              "category": "bid_strategies",
+              "definition": "Smart Bidding strategies that aim to spend the full budget while getting the most conversions (Maximize Conversions) or highest conversion value (Maximize Conversion Value) possible. Unlike Target CPA/ROAS, these don't have efficiency targets.",
+              "adsContext": "Maximize strategies are volume-focused: they'll spend budget to get conversions without worrying about efficiency. Useful for campaigns where volume is the priority (lead gen with backend qualification, market share goals, or as a learning phase before adding targets).",
+              "tscRelevance": "TSCs help clients understand these strategies will spend aggressively without efficiency constraints. Common issues include surprise at high CPAs and not understanding that these strategies will use the full budget.",
+              "keyDetails": [
+                "Maximize Conversions: Gets most conversions possible within budget, CPA may be higher than Target CPA approach",
+                "Maximize Conversion Value: Gets highest revenue/value possible within budget, ROAS may vary",
+                "Budget-focused: Will spend full daily budget; don't use if budget flexibility is needed",
+                "No targets: Unlike tCPA/tROAS, no efficiency guardrail - volume is the goal",
+                "Good for learning: Can use to build conversion data before switching to target-based strategy",
+                "Optional targets: Can add target CPA/ROAS as optional constraint to these strategies"
+              ],
+              "interviewQuestions": [
+                "What's the difference between Maximize Conversions and Target CPA? When would you use each?",
+                "A client switched from Target CPA to Maximize Conversions and their CPA doubled. Why?",
+                "When would you recommend Maximize Conversion Value without a ROAS target?"
+              ],
+              "sqlConnection": "Maximize strategy analysis focuses on volume metrics and comparing efficiency before/after strategy changes.",
+              "troubleshooting": {
+                "symptoms": [
+                  "CPA/ROAS worse than previous strategy",
+                  "Budget spent very quickly each day",
+                  "Unexpected high-CPA conversions",
+                  "Performance less predictable than target-based strategies"
+                ],
+                "diagnosticQuestions": [
+                  "Is volume or efficiency the primary goal?",
+                  "Does the client understand the strategy will spend full budget?",
+                  "Was a target (CPA/ROAS) added to constrain the strategy?",
+                  "Is budget level appropriate for the market?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Expecting efficiency from volume-focused strategy",
+                    "probability": "high",
+                    "resolution": "Clarify that Maximize strategies prioritize volume over efficiency. Add a target CPA/ROAS constraint or switch to Target CPA/ROAS.",
+                    "verification": "Review strategy type; confirm whether optional target constraint is set"
+                  },
+                  {
+                    "issue": "Budget too high for efficient conversion opportunities",
+                    "probability": "medium",
+                    "resolution": "Maximize will spend full budget even at poor CPAs. Reduce budget to force prioritization of efficient opportunities.",
+                    "verification": "Compare daily budget to realistic conversion opportunity; check if lowering budget improves efficiency"
+                  }
+                ]
+              },
+              "tools": ["Bid Strategy Report", "Budget recommendations", "Change History"]
+            }
+          ]
+        },
+        {
+          "id": "p2-4",
+          "name": "Budget Configuration",
+          "parentId": "phase-2",
+          "priority": "must_know_cold",
+          "category": "budget",
+          "definition": "The setup and management of advertising budgets in Google Ads, including daily budget allocation, shared budgets across campaigns, budget pacing, and understanding over-delivery allowances.",
+          "adsContext": "Budget configuration directly impacts campaign delivery and opportunity capture. Proper budget setting ensures ads show when valuable users are searching, while budget pacing determines how spend is distributed throughout the day. Understanding over-delivery rules prevents billing confusion.",
+          "tscRelevance": "TSCs frequently explain budget behavior to confused advertisers: why daily spend exceeds daily budget, why campaigns are limited, and how shared budgets affect delivery. Budget troubleshooting is a common support topic.",
+          "keyDetails": [
+            "Daily budget: Average amount willing to spend per day; actual spend can exceed by up to 2x daily",
+            "Monthly maximum: Won't exceed daily budget × 30.4 (average days/month) over billing period",
+            "Shared budgets: Single budget pool across multiple campaigns; managed in Shared Library",
+            "Budget pacing: Standard (spread throughout day) vs Accelerated (spend ASAP, deprecated for most)",
+            "Limited by budget: Status indicating campaign could get more results with higher budget"
+          ],
+          "interviewQuestions": [
+            "A client's daily budget is $100 but they see $180 charges on some days. Is this expected?",
+            "When would you recommend shared budgets vs individual campaign budgets?",
+            "How does budget interact with bid strategy in determining delivery?"
+          ],
+          "sqlConnection": "Budget analysis involves tracking spend patterns over time, calculating budget utilization, and comparing budgeted vs actual spend by campaign.",
+          "troubleshooting": {
+            "symptoms": [
+              "Daily spend exceeding daily budget",
+              "Campaign limited by budget despite headroom",
+              "Shared budget being dominated by one campaign",
+              "Uneven spend throughout the day"
+            ],
+            "diagnosticQuestions": [
+              "What is the budget type (daily, shared)?",
+              "What does the monthly spend total to?",
+              "Which campaigns are on the shared budget?",
+              "Is there an ad schedule limiting delivery windows?"
+            ],
+            "causes": [
+              {
+                "issue": "Client not understanding 2x over-delivery allowance",
+                "probability": "high",
+                "resolution": "Explain that Google can spend up to 2x daily budget on high-opportunity days, but won't exceed 30.4 × daily budget per month",
+                "verification": "Show billing summary for the month; confirm total doesn't exceed monthly maximum"
+              },
+              {
+                "issue": "One campaign consuming shared budget disproportionately",
+                "probability": "medium",
+                "resolution": "Campaigns with broader targeting or higher bids will spend faster from shared pool. Consider individual budgets for key campaigns.",
+                "verification": "Check individual campaign spend vs shared budget total; identify dominant campaign"
+              },
+              {
+                "issue": "Budget limited status despite willingness to spend more",
+                "probability": "medium",
+                "resolution": "Increase daily budget; use Performance Planner to estimate impact of budget changes",
+                "verification": "Check impression share columns for 'Lost IS (budget)' metric"
+              }
+            ]
+          },
+          "tools": ["Budget settings", "Shared Library", "Performance Planner", "Budget columns", "Billing Summary"],
+          "children": [
+            {
+              "id": "p2-4-1",
+              "name": "Daily Budgets vs Shared Budgets",
+              "parentId": "p2-4",
+              "priority": "must_know_cold",
+              "category": "budget_types",
+              "definition": "Daily budgets set spend limits for individual campaigns, while shared budgets create a common pool of budget that multiple campaigns draw from. Choice affects budget control, optimization, and how campaigns compete for spend.",
+              "adsContext": "Individual daily budgets provide precise control per campaign. Shared budgets allow automatic reallocation to highest-opportunity campaigns but reduce control over individual campaign spend. Shared budgets work well when campaigns have similar goals and you want maximum flexibility.",
+              "tscRelevance": "TSCs help clients choose between budget types and troubleshoot shared budget issues where one campaign dominates. Understanding trade-offs is important for account structure recommendations.",
+              "keyDetails": [
+                "Daily budget: Set per campaign, provides precise spend control, campaign stops when depleted",
+                "Shared budget: Pool across campaigns, Google redistributes based on opportunity",
+                "Shared budget advantage: Captures opportunities across campaigns without micromanagement",
+                "Shared budget risk: High-demand campaigns may consume most of the pool",
+                "Creation: Shared budgets created in Tools & Settings > Shared Library > Budgets"
+              ],
+              "interviewQuestions": [
+                "What are the pros and cons of shared budgets?",
+                "A client has brand and non-brand Search campaigns. Would you recommend shared or separate budgets?",
+                "How does Smart Bidding interact with shared budgets?"
+              ],
+              "sqlConnection": "Budget analysis can compare spend distribution across campaigns using a shared budget vs the expected distribution.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Campaign A spent nothing while Campaign B used entire shared budget",
+                  "Difficulty tracking spend by campaign with shared budgets",
+                  "Shared budget depleting too early in the day"
+                ],
+                "diagnosticQuestions": [
+                  "What are the targeting settings of campaigns on the shared budget?",
+                  "Which campaign has more query volume/opportunity?",
+                  "Are the campaigns' goals compatible for shared budget?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Campaign with broader targeting dominating shared budget",
+                    "probability": "high",
+                    "resolution": "Move dominant campaign to individual budget, or ensure all shared-budget campaigns have compatible opportunity levels",
+                    "verification": "Compare each campaign's potential impressions vs actual spend share"
+                  },
+                  {
+                    "issue": "Incompatible campaign goals sharing budget",
+                    "probability": "medium",
+                    "resolution": "Brand and non-brand campaigns often shouldn't share budgets; separate to ensure brand campaigns always serve",
+                    "verification": "Review campaign types and goals on shared budget"
+                  }
+                ]
+              },
+              "tools": ["Shared Library > Budgets", "Budget columns", "Campaign settings"]
+            },
+            {
+              "id": "p2-4-2",
+              "name": "Budget Pacing & Over-Delivery",
+              "parentId": "p2-4",
+              "priority": "must_know_cold",
+              "category": "budget_types",
+              "definition": "Budget pacing determines how spend is distributed throughout the day (standard vs accelerated), while over-delivery rules allow Google to spend up to 2x daily budget on high-opportunity days to maximize results.",
+              "adsContext": "Standard pacing (default) spreads budget throughout the day to capture opportunities during all hours. Accelerated pacing (deprecated for most campaigns) spends ASAP and may deplete budget before peak hours. Over-delivery allows Google to capitalize on high-demand days while staying within monthly limits.",
+              "tscRelevance": "TSCs frequently explain over-delivery to confused clients who see daily spend exceeding their daily budget. Also help clients understand why ads stopped showing mid-day (budget pacing).",
+              "keyDetails": [
+                "Standard pacing: Spreads spend evenly throughout the day; may skip some auctions to preserve budget for later",
+                "Accelerated pacing: Deprecated for most campaigns since 2019; was used for time-sensitive promotions",
+                "Over-delivery: Google can spend up to 2x daily budget on any given day",
+                "Monthly cap: Total monthly spend won't exceed daily budget × 30.4 (average days per month)",
+                "Credits: If you're overcharged beyond monthly maximum, you receive automatic credit"
+              ],
+              "interviewQuestions": [
+                "A client sees $200 spend on a day when daily budget is $100. Is this a bug? Will they be refunded?",
+                "Why did Google deprecate accelerated delivery for most campaigns?",
+                "How does over-delivery affect monthly billing?"
+              ],
+              "sqlConnection": "Pacing analysis can compare hourly spend distribution to identify if budget is depleting too early.",
+              "troubleshooting": {
+                "symptoms": [
+                  "Daily spend significantly exceeds daily budget",
+                  "Ads not showing in afternoon/evening despite morning visibility",
+                  "Monthly spend higher than expected",
+                  "Concerns about billing accuracy"
+                ],
+                "diagnosticQuestions": [
+                  "What is the daily budget vs daily spend on problem days?",
+                  "What is the total monthly spend vs (daily budget × 30.4)?",
+                  "Is there an ad schedule concentrating delivery?",
+                  "Are there high-value days (holidays, promotions) driving over-delivery?"
+                ],
+                "causes": [
+                  {
+                    "issue": "Normal over-delivery on high-opportunity days",
+                    "probability": "high",
+                    "resolution": "Explain 2x daily allowance and monthly cap; show that monthly total respects limits",
+                    "verification": "Check billing summary for monthly total vs calculated maximum"
+                  },
+                  {
+                    "issue": "Budget depleting early due to high morning demand",
+                    "probability": "medium",
+                    "resolution": "Increase budget or use ad scheduling to prioritize key hours; consider bid adjustments by hour",
+                    "verification": "Check hourly distribution in Reports > Time > Hour of day"
+                  },
+                  {
+                    "issue": "Budget too low for campaign opportunity causing pacing limitations",
+                    "probability": "medium",
+                    "resolution": "Increase budget to meet demand; check 'Limited by budget' status and impression share data",
+                    "verification": "Review Search Impression Share Lost (budget) metric"
+                  }
+                ]
+              },
+              "tools": ["Billing Summary", "Hour of Day report", "Impression Share columns", "Budget recommendations"]
+            }
+          ]
+        }
+      ]
     }
   ],
   "crossCutting": {
