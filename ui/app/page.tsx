@@ -1,12 +1,13 @@
 import { FlowCanvas } from '@/components/FlowCanvas';
+import { Header } from '@/components/Header';
+import { DetailPanel } from '@/components/panels/DetailPanel';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="h-16 bg-white border-b flex items-center px-6">
-        <h1 className="text-xl font-semibold">Google Ads Lifecycle Study Tool</h1>
-      </header>
+      <Header />
       <FlowCanvas />
+      <DetailPanel />
     </main>
   );
 }

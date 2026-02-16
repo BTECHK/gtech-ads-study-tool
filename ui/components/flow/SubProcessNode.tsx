@@ -48,6 +48,7 @@ interface SubProcessNodeData {
   childCount: number;
   isExpanded: boolean;
   isSelected: boolean;
+  isDimmed?: boolean;
   onSelect: () => void;
   onToggleExpand: () => void;
 }
@@ -62,7 +63,8 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         'w-[160px] min-h-[80px] rounded-lg p-3 cursor-pointer transition-all shadow-sm',
         'hover:shadow-md hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-2 ring-blue-500 ring-offset-1'
+        data.isSelected && 'ring-2 ring-blue-500 ring-offset-1',
+        data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
       onDoubleClick={data.onToggleExpand}

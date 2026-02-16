@@ -31,6 +31,7 @@ interface PhaseNodeData {
   childCount: number;
   isExpanded: boolean;
   isSelected: boolean;
+  isDimmed?: boolean;
   onSelect: () => void;
   onToggleExpand: () => void;
 }
@@ -45,7 +46,8 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         'w-[200px] min-h-[120px] rounded-xl p-4 cursor-pointer transition-all shadow-md',
         'hover:shadow-lg hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-2 ring-blue-500 ring-offset-2'
+        data.isSelected && 'ring-2 ring-blue-500 ring-offset-2',
+        data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
       onDoubleClick={data.onToggleExpand}
