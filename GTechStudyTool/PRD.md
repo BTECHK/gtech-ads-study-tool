@@ -1,7 +1,7 @@
 # Google Ads Lifecycle Study Tool - Product Requirements Document
 
 **Version:** 1.0
-**Author:** Kyle Atekwana
+**Author:** BTECHK
 **Date:** February 2026
 **Status:** Shipped (v1.0)
 

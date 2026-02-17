@@ -254,6 +254,7 @@ export function FlowCanvas() {
     expandedNodeIds,
     selectedNodeId,
     setSelectedNodeId,
+    setSidebarOpen,
     toggleExpanded,
     priorityFilter,
     searchQuery,

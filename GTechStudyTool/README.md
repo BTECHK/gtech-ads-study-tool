@@ -121,7 +121,7 @@ For commercial licensing inquiries, please contact the author.
 
 ## Author
 
-**Kyle Atekwana** ([@BTECHK](https://github.com/BTECHK))
+[@BTECHK](https://github.com/BTECHK)
 
 ## Acknowledgments
 
