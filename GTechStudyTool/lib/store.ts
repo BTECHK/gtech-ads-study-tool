@@ -36,7 +36,7 @@ export const useStore = create<StoreState>((set) => ({
   selectedNodeId: null,
   setSelectedNodeId: (id) => set({ selectedNodeId: id, sidebarOpen: id !== null }),
 
-  expandedNodeIds: new Set(['phase-1', 'phase-2', 'phase-3', 'phase-4', 'phase-5', 'phase-6', 'phase-7', 'phase-8']),
+  expandedNodeIds: new Set<string>(),
   toggleExpanded: (id) => set((state) => {
     const newSet = new Set(state.expandedNodeIds);
     if (newSet.has(id)) {

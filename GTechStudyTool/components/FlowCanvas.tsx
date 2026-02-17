@@ -91,10 +91,11 @@ export function FlowCanvas() {
     const PHASE_HEIGHT = 150;
     const CHILD_WIDTH = 200;
     const CHILD_HEIGHT = 110;
-    const HORIZONTAL_GAP = 100;
-    const VERTICAL_GAP = 50;
-    const CHILD_START_Y = PHASE_HEIGHT + 100;
-    const CHILD_HORIZONTAL_GAP = 40;
+    const HORIZONTAL_GAP = 120;
+    const VERTICAL_GAP = 80;
+    const CHILD_START_Y = PHASE_HEIGHT + 120;
+    const CHILD_HORIZONTAL_GAP = 60;
+    const GRANDCHILD_VERTICAL_GAP = 30;
 
     // Track max children per phase for layout
     let currentX = 0;
@@ -133,15 +134,13 @@ export function FlowCanvas() {
         });
       }
 
-      // Add children if expanded
+      // Add children if expanded - layout vertically downward
       if (isExpanded && phase.children) {
-        const childrenPerRow = 2;
-        phase.children.forEach((child, childIndex) => {
-          const row = Math.floor(childIndex / childrenPerRow);
-          const col = childIndex % childrenPerRow;
+        let currentChildY = CHILD_START_Y;
 
-          const childX = currentX + col * (CHILD_WIDTH + CHILD_HORIZONTAL_GAP);
-          const childY = CHILD_START_Y + row * (CHILD_HEIGHT + VERTICAL_GAP);
+        phase.children.forEach((child, childIndex) => {
+          const childX = currentX;
+          const childY = currentChildY;
 
           const childMatches = anyChildMatchesFilters(child, priorityFilter, searchQuery);
 
@@ -172,11 +171,16 @@ export function FlowCanvas() {
             animated: false,
           });
 
-          // If this child is expanded, add its grandchildren
+          // Calculate height needed for this child
+          let childTotalHeight = CHILD_HEIGHT + VERTICAL_GAP;
+
+          // If this child is expanded, add its grandchildren below it
           if (expandedNodeIds.has(child.id) && child.children) {
+            let gcCurrentY = childY + CHILD_HEIGHT + GRANDCHILD_VERTICAL_GAP;
+
             child.children.forEach((grandchild, gcIndex) => {
-              const gcX = childX + CHILD_WIDTH + 40;
-              const gcY = childY + gcIndex * (CHILD_HEIGHT - 20);
+              const gcX = childX + 40; // Indent grandchildren slightly
+              const gcY = gcCurrentY;
 
               const gcMatches = nodeMatchesFilters(grandchild, priorityFilter, searchQuery);
 
@@ -204,14 +208,27 @@ export function FlowCanvas() {
                 type: 'smoothstep',
                 style: { stroke: '#cbd5e1', strokeWidth: 1 },
               });
+
+              gcCurrentY += CHILD_HEIGHT + GRANDCHILD_VERTICAL_GAP;
             });
+
+            // Update childTotalHeight to include grandchildren
+            childTotalHeight = CHILD_HEIGHT + GRANDCHILD_VERTICAL_GAP +
+              (child.children.length * (CHILD_HEIGHT + GRANDCHILD_VERTICAL_GAP));
           }
+
+          // Move Y position for next child
+          currentChildY += childTotalHeight;
         });
       }
 
       // Calculate width for this phase column with proper spacing
+      // Account for grandchildren indent when expanded
+      const hasExpandedChildren = isExpanded && phase.children && phase.children.some(
+        child => expandedNodeIds.has(child.id) && child.children?.length
+      );
       const expandedChildWidth = isExpanded && phase.children && phase.children.length > 0
-        ? Math.max(PHASE_WIDTH, 2 * (CHILD_WIDTH + CHILD_HORIZONTAL_GAP) + 60)
+        ? Math.max(PHASE_WIDTH, CHILD_WIDTH + (hasExpandedChildren ? 80 : 20))
         : PHASE_WIDTH;
       currentX += expandedChildWidth + HORIZONTAL_GAP;
     });

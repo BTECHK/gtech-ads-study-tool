@@ -330,11 +330,11 @@ export function DetailPanel() {
 
   return (
     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <SheetContent className="w-[95vw] max-w-[500px] p-0 flex flex-col overflow-hidden">
+      <SheetContent className="w-[95vw] max-w-[500px] p-0 flex flex-col overflow-hidden" showCloseButton={false}>
         {/* Panel Navigation */}
-        <div className="border-b px-2 py-2 bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex gap-1">
+        <div className="border-b px-2 py-2 bg-gray-50 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-1 flex-wrap min-w-0">
               {panelTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = sidebarTab === tab.id;
@@ -343,13 +343,14 @@ export function DetailPanel() {
                     key={tab.id}
                     variant={isActive ? 'default' : 'ghost'}
                     size="sm"
-                    className={`h-8 px-3 text-xs ${
+                    className={`h-8 px-2 text-xs shrink-0 ${
                       isActive ? '' : 'text-gray-600 hover:text-gray-900'
                     }`}
                     onClick={() => setSidebarTab(tab.id)}
                   >
-                    <Icon className="w-3.5 h-3.5 mr-1.5" />
-                    {tab.label}
+                    <Icon className="w-3.5 h-3.5 mr-1" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                   </Button>
                 );
               })}
@@ -357,7 +358,7 @@ export function DetailPanel() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 shrink-0"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="w-4 h-4" />

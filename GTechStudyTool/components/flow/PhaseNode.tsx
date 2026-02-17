@@ -46,7 +46,7 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         'w-[200px] min-h-[120px] rounded-xl p-4 cursor-pointer transition-all shadow-md',
         'hover:shadow-lg hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-2 ring-blue-500 ring-offset-2',
+        data.isSelected && 'ring-4 ring-blue-500 ring-offset-2 shadow-xl shadow-blue-500/30 scale-105',
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}

@@ -63,7 +63,7 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         'w-[160px] min-h-[80px] rounded-lg p-3 cursor-pointer transition-all shadow-sm',
         'hover:shadow-md hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-2 ring-blue-500 ring-offset-1',
+        data.isSelected && 'ring-4 ring-blue-500 ring-offset-1 shadow-lg shadow-blue-500/30 scale-105',
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
