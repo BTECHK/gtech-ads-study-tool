@@ -50,7 +50,7 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
-      onDoubleClick={data.onToggleExpand}
+      onDoubleClick={() => { data.onSelect(); data.onToggleExpand(); }}
     >
       <Handle type="target" position={Position.Left} className="!bg-gray-400 !w-2 !h-2" />
 
@@ -90,7 +90,8 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         )}
       </div>
 
-      <Handle type="source" position={Position.Right} className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="source" position={Position.Right} id="right" className="!bg-gray-400 !w-2 !h-2" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="!bg-gray-400 !w-2 !h-2" />
     </div>
   );
 });

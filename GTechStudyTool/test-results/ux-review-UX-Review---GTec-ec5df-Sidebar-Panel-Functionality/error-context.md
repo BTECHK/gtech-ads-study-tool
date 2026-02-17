@@ -1,0 +1,199 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - main:
+    - generic:
+      - generic:
+        - heading [level=1]: GTech Digital Lifecycle Study Tool
+        - generic:
+          - button: "1"
+          - button: "2"
+          - button: "3"
+          - button: "4"
+          - button: "5"
+          - button: "6"
+          - button: "7"
+          - button: "8"
+        - generic:
+          - button:
+            - img
+            - text: Expand
+          - button:
+            - img
+            - text: Collapse
+        - generic:
+          - button:
+            - img
+            - text: Key Processes
+            - img
+      - generic:
+        - generic:
+          - button:
+            - img
+            - text: Ecosystem
+          - button:
+            - img
+            - text: Competitors
+          - button:
+            - img
+            - text: Privacy
+        - generic:
+          - button: All
+          - button: Critical
+          - button: Important
+          - button: Awareness
+        - generic:
+          - img
+          - textbox:
+            - /placeholder: Search... (Enter to expand)
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - img:
+                - generic:
+                  - button [ref=e1] [cursor=pointer]
+                  - button [ref=e4] [cursor=pointer]
+                  - button [ref=e7] [cursor=pointer]
+              - generic:
+                - button [ref=e10]:
+                  - generic [ref=e11] [cursor=pointer]:
+                    - generic [ref=e13]:
+                      - generic [ref=e14]: Phase 1
+                      - button [ref=e15]:
+                        - img [ref=e16]
+                    - heading [level=3] [ref=e18]: Account Setup
+                    - generic [ref=e19]:
+                      - generic [ref=e20]: digital marketing
+                      - generic [ref=e21]: 4 items
+                - button [ref=e23]:
+                  - generic [ref=e24] [cursor=pointer]:
+                    - generic [ref=e26]:
+                      - generic [ref=e27]: Phase 2
+                      - button [ref=e28]:
+                        - img [ref=e29]
+                    - heading [level=3] [ref=e31]: Targeting & Bidding
+                    - generic [ref=e32]:
+                      - generic [ref=e33]: digital marketing
+                      - generic [ref=e34]: 4 items
+                - button [ref=e36]:
+                  - generic [ref=e37] [cursor=pointer]:
+                    - generic [ref=e39]:
+                      - generic [ref=e40]: Phase 3
+                      - button [ref=e41]:
+                        - img [ref=e42]
+                    - heading [level=3] [ref=e44]: Ad Auction
+                    - generic [ref=e45]:
+                      - generic [ref=e46]: architecture
+                      - generic [ref=e47]: 5 items
+                - button [ref=e49]:
+                  - generic [ref=e50] [cursor=pointer]:
+                    - generic [ref=e52]:
+                      - generic [ref=e53]: Phase 4
+                      - button [ref=e54]:
+                        - img [ref=e55]
+                    - heading [level=3] [ref=e57]: Ad Serving & Click
+                    - generic [ref=e58]:
+                      - generic [ref=e59]: web tech
+                      - generic [ref=e60]: 11 items
+                - button [ref=e62]:
+                  - generic [ref=e63] [cursor=pointer]:
+                    - generic [ref=e65]:
+                      - generic [ref=e66]: Phase 5
+                      - button [ref=e67]:
+                        - img [ref=e68]
+                    - heading [level=3] [ref=e70]: Conversion Tracking
+                    - generic [ref=e71]:
+                      - generic [ref=e72]: data pipelines
+                      - generic [ref=e73]: 12 items
+                - button [ref=e75]:
+                  - generic [ref=e76] [cursor=pointer]:
+                    - generic [ref=e78]:
+                      - generic [ref=e79]: Phase 6
+                      - button [ref=e80]:
+                        - img [ref=e81]
+                    - heading [level=3] [ref=e83]: Data Pipelines
+                    - generic [ref=e84]:
+                      - generic [ref=e85]: databases sql
+                      - generic [ref=e86]: 8 items
+                - button [ref=e88]:
+                  - generic [ref=e89] [cursor=pointer]:
+                    - generic [ref=e91]:
+                      - generic [ref=e92]: Phase 7
+                      - button [ref=e93]:
+                        - img [ref=e94]
+                    - heading [level=3] [ref=e96]: Analysis & Optimization
+                    - generic [ref=e97]:
+                      - generic [ref=e98]: digital marketing
+                      - generic [ref=e99]: 5 items
+                - button [ref=e101]:
+                  - generic [ref=e102] [cursor=pointer]:
+                    - generic [ref=e104]:
+                      - generic [ref=e105]: Phase 8
+                      - button [ref=e106]:
+                        - img [ref=e107]
+                    - heading [level=3] [ref=e109]: AI/ML & Competitive
+                    - generic [ref=e110]:
+                      - generic [ref=e111]: ai ml
+                      - generic [ref=e112]: 5 items
+        - img
+        - generic [ref=e114]:
+          - button [ref=e115] [cursor=pointer]:
+            - img [ref=e116]
+          - button [ref=e118] [cursor=pointer]:
+            - img [ref=e119]
+          - button [ref=e121] [cursor=pointer]:
+            - img [ref=e122]
+          - button [ref=e124] [cursor=pointer]:
+            - img [ref=e125]
+        - img [ref=e128]
+        - link [ref=e138] [cursor=pointer]:
+          - /url: https://reactflow.dev
+          - text: React Flow
+  - button "Open Next.js Dev Tools" [ref=e144] [cursor=pointer]:
+    - img [ref=e145]
+  - alert
+  - dialog "Account Setup" [ref=e149]:
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - button "Node Detail" [active] [ref=e153]:
+          - img [ref=e154]
+          - text: Node Detail
+        - button "Ecosystem" [ref=e157]:
+          - img [ref=e158]
+          - text: Ecosystem
+        - button "Competitors" [ref=e161]:
+          - img [ref=e162]
+          - text: Competitors
+        - button "Privacy" [ref=e171]:
+          - img [ref=e172]
+          - text: Privacy
+      - button [ref=e174]:
+        - img [ref=e175]
+    - generic [ref=e178]:
+      - generic [ref=e179]:
+        - generic [ref=e180]: know well
+        - generic [ref=e181]: Phase 1
+      - heading "Account Setup" [level=2] [ref=e182]
+    - generic [ref=e183]:
+      - tablist [ref=e184]:
+        - tab "Overview" [selected] [ref=e185]
+        - tab "Technical" [ref=e186]
+        - tab "Issues" [ref=e187]
+        - tab "Interview" [ref=e188]
+      - tabpanel "Overview" [ref=e192]:
+        - generic [ref=e193]:
+          - heading "Google Ads Context" [level=4] [ref=e194]
+          - paragraph [ref=e195]: Account structure determines reporting granularity, budget allocation flexibility, and optimization capabilities. Poor structure leads to limited control, wasted spend, and difficulty troubleshooting performance issues.
+        - generic [ref=e196]:
+          - heading "Summary" [level=4] [ref=e197]
+          - paragraph [ref=e198]: Creating and structuring Google Ads accounts with proper hierarchy, campaign types, and pricing models
+        - generic [ref=e199]:
+          - heading "Data Flow In" [level=4] [ref=e200]
+          - paragraph [ref=e201]: Business goals, budget, target audience, industry vertical, geographic scope
+        - generic [ref=e202]:
+          - heading "Data Flow Out" [level=4] [ref=e203]
+          - paragraph [ref=e204]: Configured account ready for targeting setup with campaigns, ad groups, and billing established
+```

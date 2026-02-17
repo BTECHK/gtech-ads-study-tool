@@ -67,9 +67,9 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
-      onDoubleClick={data.onToggleExpand}
+      onDoubleClick={() => { data.onSelect(); data.onToggleExpand(); }}
     >
-      <Handle type="target" position={Position.Left} className="!bg-gray-400 !w-1.5 !h-1.5" />
+      <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-1.5 !h-1.5" />
 
       <div className="flex justify-between items-start mb-1">
         <Badge className={cn('text-white text-[9px] px-1.5', categoryColor)}>
@@ -102,7 +102,7 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         </span>
       )}
 
-      <Handle type="source" position={Position.Right} className="!bg-gray-400 !w-1.5 !h-1.5" />
+      <Handle type="source" position={Position.Bottom} className="!bg-gray-400 !w-1.5 !h-1.5" />
     </div>
   );
 });

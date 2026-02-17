@@ -123,11 +123,12 @@ export function FlowCanvas() {
         },
       });
 
-      // Connect to previous phase
+      // Connect to previous phase (horizontal)
       if (phaseIndex > 0) {
         edges.push({
           id: `e-${data.phases[phaseIndex - 1].id}-${phase.id}`,
           source: data.phases[phaseIndex - 1].id,
+          sourceHandle: 'right',
           target: phase.id,
           type: 'smoothstep',
           style: { stroke: '#64748b', strokeWidth: 2 },
@@ -161,10 +162,11 @@ export function FlowCanvas() {
             },
           });
 
-          // Edge from phase to child
+          // Edge from phase to child (vertical connection)
           edges.push({
             id: `e-${phase.id}-${child.id}`,
             source: phase.id,
+            sourceHandle: 'bottom',
             target: child.id,
             type: 'smoothstep',
             style: { stroke: '#94a3b8', strokeWidth: 1 },
@@ -201,6 +203,7 @@ export function FlowCanvas() {
                 },
               });
 
+              // Vertical edge from child to grandchild
               edges.push({
                 id: `e-${child.id}-${grandchild.id}`,
                 source: child.id,
