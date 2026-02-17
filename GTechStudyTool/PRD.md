@@ -11,29 +11,29 @@
 
 ### 1.1 Problem Statement
 
-Preparing for a Google gTech Technical Solutions Consultant (TSC) interview requires understanding the complete Google Ads lifecycle - from account setup through optimization and troubleshooting. Traditional study methods (documents, flashcards) fail to show how concepts connect and flow into each other, making it difficult to build the mental model interviewers expect.
+Understanding the complete Google Ads lifecycle - from account setup through optimization and troubleshooting - requires seeing how all the pieces fit together. Traditional study methods (documents, flashcards) fail to show how concepts connect and flow into each other, making it difficult to build a comprehensive mental model of the platform.
 
 **Evidence:**
 > "I kept forgetting how targeting settings cascade down from campaign to ad group level because I was studying each concept in isolation."
 
 ### 1.2 Opportunity
 
-Technical interview preparation is shifting toward visual and interactive learning. A tool that maps the entire Google Ads ecosystem as an explorable workflow allows candidates to:
+Learning complex systems is shifting toward visual and interactive approaches. A tool that maps the entire Google Ads ecosystem as an explorable workflow allows learners to:
 - See relationships between concepts at a glance
 - Drill down into specifics on demand
 - Filter by priority level to focus study time
-- Build the connected understanding TSCs need
+- Build a connected understanding of the platform
 
 ### 1.3 Solution Summary
 
-An interactive visual study tool built with React Flow that displays the Google Ads lifecycle as a navigable node graph. Users can expand/collapse phases, filter by priority, search for specific topics, and view detailed information including definitions, interview questions, troubleshooting guides, and SQL connections.
+An interactive visual learning tool built with React Flow that displays the Google Ads lifecycle as a navigable node graph. Users can expand/collapse phases, filter by priority, search for specific topics, and view detailed information including definitions, key concepts, troubleshooting guides, and SQL connections.
 
 ### 1.4 Success Metrics
 
 | Metric | Target | Measurement Method |
 |--------|--------|-------------------|
-| Primary: Interview confidence | User reports feeling prepared | Self-assessment |
-| Secondary: Topic coverage | 100% of key TSC topics covered | Content audit |
+| Primary: Learning confidence | User reports feeling knowledgeable | Self-assessment |
+| Secondary: Topic coverage | 100% of key Google Ads topics covered | Content audit |
 | Guardrail: Usability | Tool is intuitive without training | User testing |
 
 ---
@@ -42,13 +42,13 @@ An interactive visual study tool built with React Flow that displays the Google 
 
 ### 2.1 Primary User Persona
 
-**Name:** TSC Interview Candidate
-**Segment:** Technical professionals preparing for Google gTech interviews
+**Name:** Google Ads Learner
+**Segment:** Technical professionals learning Google Ads
 
 **Demographics:**
 - Technical background (engineering, IT, analytics)
 - Familiar with digital advertising concepts
-- Preparing for Google TSC interview within 1-4 weeks
+- Looking to deepen understanding of Google Ads
 
 **Jobs to be Done:**
 
@@ -56,8 +56,8 @@ An interactive visual study tool built with React Flow that displays the Google 
 |----------|---------------|----------|
 | Functional | Understand the complete Google Ads lifecycle end-to-end | P0 |
 | Functional | Know which topics are most critical ("must know cold") | P0 |
-| Emotional | Feel confident and prepared for the interview | P0 |
-| Functional | Practice answering common interview questions | P1 |
+| Emotional | Feel confident and knowledgeable about the platform | P0 |
+| Functional | Explore common scenarios and solutions | P1 |
 
 **Pain Points:**
 1. Overwhelming amount of Google Ads documentation to review
@@ -66,7 +66,7 @@ An interactive visual study tool built with React Flow that displays the Google 
 
 **Current Alternatives:**
 - Google Ads documentation - Comprehensive but overwhelming, no prioritization
-- Generic study guides - Not TSC-specific, miss technical depth
+- Generic study guides - Miss technical depth
 - Flashcards - Isolated facts without showing relationships
 
 ### 2.2 Anti-Personas (Who This Is NOT For)
@@ -110,8 +110,8 @@ An interactive visual study tool built with React Flow that displays the Google 
 | ID | User Story | Acceptance Criteria | Priority |
 |----|------------|---------------------|----------|
 | US-006 | As a user, I want to view detailed info about a topic so I can study deeply | - Info button opens sidebar panel<br>- Shows definition, context, key details | P0 |
-| US-007 | As a user, I want to see interview questions so I can practice | - Interview questions listed in detail panel<br>- TSC-relevant scenarios included | P0 |
-| US-008 | As a user, I want to see troubleshooting info so I can prepare for diagnostic scenarios | - Symptoms, causes, resolutions shown<br>- Probability indicators for common issues | P1 |
+| US-007 | As a user, I want to see key questions so I can test my understanding | - Key questions listed in detail panel<br>- Practical scenarios included | P0 |
+| US-008 | As a user, I want to see troubleshooting info so I can learn diagnostic approaches | - Symptoms, causes, resolutions shown<br>- Probability indicators for common issues | P1 |
 
 **Epic 4: Search & Discovery**
 
@@ -167,7 +167,7 @@ Step 3: User clicks Info button on topic
    → User sees: Sidebar opens with full details
    → System: Sets selected node, opens sidebar
 
-Step 4: User reads definition, interview questions
+Step 4: User reads definition, key concepts
    → User sees: Scrollable content in sidebar
    → System: Displays topic data from JSON
 
@@ -230,7 +230,7 @@ Success State: User efficiently studies most important topics
 
 - Lifecycle data stored in `lifecycle_data.json`
 - Hierarchical structure: Phases → Children → Grandchildren
-- Each node contains: id, name, priority, category, definition, adsContext, keyDetails, interviewQuestions, troubleshooting
+- Each node contains: id, name, priority, category, definition, adsContext, keyDetails, keyQuestions, troubleshooting
 
 ---
 
@@ -278,9 +278,9 @@ Success State: User efficiently studies most important topics
 Each topic includes:
 - Definition
 - Google Ads context
-- TSC relevance
+- Practical relevance
 - Key details (bullet points)
-- Interview questions
+- Key questions for understanding
 - SQL connection (where applicable)
 - Troubleshooting guide (symptoms, causes, resolutions)
 

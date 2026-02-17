@@ -1,6 +1,6 @@
 # Google Ads Lifecycle Study Tool
 
-An interactive visual study tool for Google gTech Technical Solutions Consultant (TSC) interview preparation. Explore the complete Google Ads lifecycle through an intuitive node-based interface.
+An interactive visual learning tool for understanding the complete Google Ads ecosystem. Explore the full Google Ads lifecycle through an intuitive node-based interface.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![React](https://img.shields.io/badge/React-18-blue)
@@ -13,7 +13,7 @@ An interactive visual study tool for Google gTech Technical Solutions Consultant
 - **Expandable Hierarchy** - Drill down from phases to topics to sub-topics
 - **Priority Filtering** - Focus on "Must Know Cold", "Know Well", or "Conceptual" topics
 - **Search** - Quickly find specific concepts
-- **Detailed Info Panels** - View definitions, interview questions, troubleshooting guides
+- **Detailed Info Panels** - View definitions, key concepts, troubleshooting guides
 - **Interactive Canvas** - Pan, zoom, and explore with React Flow
 
 ## Priority Legend
@@ -103,9 +103,9 @@ The tool covers the complete Google Ads lifecycle:
 
 Each topic includes:
 - Definition and context
-- TSC relevance
+- Practical relevance
 - Key details
-- Interview questions
+- Conceptual deep-dives
 - Troubleshooting guide
 - SQL connections (where applicable)
 
