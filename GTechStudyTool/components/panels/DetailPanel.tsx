@@ -330,7 +330,7 @@ export function DetailPanel() {
 
   return (
     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <SheetContent className="w-[95vw] max-w-[500px] p-0 flex flex-col overflow-hidden" showCloseButton={false}>
+      <SheetContent className="!w-[95vw] !max-w-[500px] p-0 flex flex-col overflow-hidden" side="right" showCloseButton={false} aria-describedby={undefined}>
         {/* Panel Navigation */}
         <div className="border-b px-2 py-2 bg-gray-50 shrink-0">
           <div className="flex items-center justify-between gap-2">

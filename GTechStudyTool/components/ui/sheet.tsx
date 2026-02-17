@@ -54,11 +54,24 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  // Inline styles to ensure proper positioning and background (overrides Radix Dialog defaults)
+  const baseStyles: React.CSSProperties = {
+    backgroundColor: 'white',
+  };
+  const positionStyles: Record<string, React.CSSProperties> = {
+    right: { top: 0, right: 0, bottom: 0, left: 'auto', height: '100%' },
+    left: { top: 0, left: 0, bottom: 0, right: 'auto', height: '100%' },
+    top: { top: 0, left: 0, right: 0, bottom: 'auto' },
+    bottom: { bottom: 0, left: 0, right: 0, top: 'auto' },
+  };
+  const sideStyles: React.CSSProperties = { ...baseStyles, ...positionStyles[side] };
+
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        style={sideStyles}
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&
