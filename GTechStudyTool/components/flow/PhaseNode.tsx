@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +34,7 @@ interface PhaseNodeData {
   isDimmed?: boolean;
   onSelect: () => void;
   onToggleExpand: () => void;
+  onOpenDetail: () => void;
 }
 
 export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
@@ -46,11 +47,10 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         'w-[200px] min-h-[120px] rounded-xl p-4 cursor-pointer transition-all shadow-md',
         'hover:shadow-lg hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-4 ring-blue-500 ring-offset-2 shadow-xl shadow-blue-500/30 scale-105',
+        data.isSelected && 'ring-4 ring-blue-500 ring-offset-2 shadow-xl shadow-blue-500/30',
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
-      onDoubleClick={() => { data.onSelect(); data.onToggleExpand(); }}
     >
       <Handle type="target" position={Position.Left} className="!bg-gray-400 !w-2 !h-2" />
 
@@ -58,21 +58,33 @@ export const PhaseNode = memo(({ data }: NodeProps<PhaseNodeData>) => {
         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
           Phase {data.phaseNumber}
         </span>
-        {data.childCount > 0 && (
+        <div className="flex items-center gap-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              data.onToggleExpand();
+              data.onOpenDetail();
             }}
-            className="p-1 hover:bg-gray-200 rounded transition-colors"
-            title={data.isExpanded ? 'Collapse' : 'Expand'}
+            className="p-1 hover:bg-blue-100 rounded transition-colors"
+            title="View details"
           >
-            {data.isExpanded
-              ? <ChevronDown className="w-5 h-5 text-gray-600" />
-              : <ChevronRight className="w-5 h-5 text-gray-600" />
-            }
+            <Info className="w-4 h-4 text-blue-600" />
           </button>
-        )}
+          {data.childCount > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onToggleExpand();
+              }}
+              className="p-1 hover:bg-gray-200 rounded transition-colors"
+              title={data.isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {data.isExpanded
+                ? <ChevronDown className="w-5 h-5 text-gray-600" />
+                : <ChevronRight className="w-5 h-5 text-gray-600" />
+              }
+            </button>
+          )}
+        </div>
       </div>
 
       <h3 className="font-semibold text-gray-900 text-[15px] leading-tight mb-3">

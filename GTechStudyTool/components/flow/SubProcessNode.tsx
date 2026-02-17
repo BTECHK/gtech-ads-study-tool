@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +51,7 @@ interface SubProcessNodeData {
   isDimmed?: boolean;
   onSelect: () => void;
   onToggleExpand: () => void;
+  onOpenDetail: () => void;
 }
 
 export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => {
@@ -63,11 +64,10 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         'w-[160px] min-h-[80px] rounded-lg p-3 cursor-pointer transition-all shadow-sm',
         'hover:shadow-md hover:-translate-y-0.5',
         priorityStyle,
-        data.isSelected && 'ring-4 ring-blue-500 ring-offset-1 shadow-lg shadow-blue-500/30 scale-105',
+        data.isSelected && 'ring-4 ring-blue-500 ring-offset-1 shadow-lg shadow-blue-500/30',
         data.isDimmed && 'opacity-20 pointer-events-none'
       )}
       onClick={data.onSelect}
-      onDoubleClick={() => { data.onSelect(); data.onToggleExpand(); }}
     >
       <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-1.5 !h-1.5" />
 
@@ -75,21 +75,33 @@ export const SubProcessNode = memo(({ data }: NodeProps<SubProcessNodeData>) => 
         <Badge className={cn('text-white text-[9px] px-1.5', categoryColor)}>
           {data.category.replace(/_/g, ' ')}
         </Badge>
-        {data.childCount > 0 && (
+        <div className="flex items-center gap-0.5">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              data.onToggleExpand();
+              data.onOpenDetail();
             }}
-            className="p-0.5 hover:bg-gray-200 rounded transition-colors"
-            title={data.isExpanded ? 'Collapse' : 'Expand'}
+            className="p-0.5 hover:bg-blue-100 rounded transition-colors"
+            title="View details"
           >
-            {data.isExpanded
-              ? <ChevronDown className="w-4 h-4 text-gray-600" />
-              : <ChevronRight className="w-4 h-4 text-gray-600" />
-            }
+            <Info className="w-3.5 h-3.5 text-blue-600" />
           </button>
-        )}
+          {data.childCount > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onToggleExpand();
+              }}
+              className="p-0.5 hover:bg-gray-200 rounded transition-colors"
+              title={data.isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {data.isExpanded
+                ? <ChevronDown className="w-4 h-4 text-gray-600" />
+                : <ChevronRight className="w-4 h-4 text-gray-600" />
+              }
+            </button>
+          )}
+        </div>
       </div>
 
       <h4 className="font-medium text-gray-900 text-[13px] leading-tight mt-2">

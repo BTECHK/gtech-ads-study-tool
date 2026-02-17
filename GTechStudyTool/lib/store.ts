@@ -34,7 +34,7 @@ interface StoreState {
 
 export const useStore = create<StoreState>((set) => ({
   selectedNodeId: null,
-  setSelectedNodeId: (id) => set({ selectedNodeId: id, sidebarOpen: id !== null }),
+  setSelectedNodeId: (id) => set({ selectedNodeId: id }),
 
   expandedNodeIds: new Set<string>(),
   toggleExpanded: (id) => set((state) => {

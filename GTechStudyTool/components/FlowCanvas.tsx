@@ -120,6 +120,10 @@ export function FlowCanvas() {
           isDimmed: !matches,
           onSelect: () => setSelectedNodeId(phase.id),
           onToggleExpand: () => toggleExpanded(phase.id),
+          onOpenDetail: () => {
+            setSelectedNodeId(phase.id);
+            setSidebarOpen(true);
+          },
         },
       });
 
@@ -159,6 +163,10 @@ export function FlowCanvas() {
               isDimmed: !childMatches,
               onSelect: () => setSelectedNodeId(child.id),
               onToggleExpand: () => toggleExpanded(child.id),
+              onOpenDetail: () => {
+                setSelectedNodeId(child.id);
+                setSidebarOpen(true);
+              },
             },
           });
 
@@ -200,6 +208,10 @@ export function FlowCanvas() {
                   isDimmed: !gcMatches,
                   onSelect: () => setSelectedNodeId(grandchild.id),
                   onToggleExpand: () => {},
+                  onOpenDetail: () => {
+                    setSelectedNodeId(grandchild.id);
+                    setSidebarOpen(true);
+                  },
                 },
               });
 
