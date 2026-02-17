@@ -11,8 +11,8 @@ export function PrivacyPanel() {
   const privacyConcepts = data.crossCutting?.privacyConsent || [];
 
   return (
-    <ScrollArea className="h-[calc(100vh-150px)]">
-      <div className="space-y-4 p-4">
+    <ScrollArea className="flex-1 min-h-0">
+      <div className="space-y-4 p-4 break-words">
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-500 mb-1">Privacy & Consent</h3>
           <p className="text-xs text-gray-400">Regulations and privacy-preserving technologies</p>

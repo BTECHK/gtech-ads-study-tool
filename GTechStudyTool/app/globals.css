@@ -126,3 +126,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Panel overflow and word wrap utilities */
+@layer utilities {
+  .panel-content {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .scrollable-code {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .scrollable-code pre {
+    min-width: min-content;
+  }
+}
+
+/* Ensure ScrollArea works properly in flex containers */
+[data-slot="scroll-area"] {
+  min-height: 0;
+  min-width: 0;
+}
+
+[data-slot="scroll-area-viewport"] {
+  overflow-wrap: anywhere;
+}
+
+/* Fix list item text overflow */
+li {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

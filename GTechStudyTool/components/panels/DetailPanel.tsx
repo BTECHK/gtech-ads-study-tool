@@ -159,16 +159,16 @@ function InterviewQuestionsTab({ node }: { node: LifecycleNode }) {
 
 function NodeDetailContent({ node }: { node: LifecycleNode }) {
   return (
-    <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-      <TabsList className="mx-4 mt-4 grid grid-cols-4">
+    <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <TabsList className="mx-4 mt-4 grid grid-cols-4 shrink-0">
         <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
         <TabsTrigger value="technical" className="text-xs">Technical</TabsTrigger>
         <TabsTrigger value="troubleshooting" className="text-xs">Issues</TabsTrigger>
         <TabsTrigger value="interview" className="text-xs">Interview</TabsTrigger>
       </TabsList>
 
-      <ScrollArea className="flex-1 px-4 pb-4">
-        <TabsContent value="overview" className="space-y-4 mt-4">
+      <ScrollArea className="flex-1 min-h-0">
+        <TabsContent value="overview" className="space-y-4 mt-4 px-4 pb-4 break-words">
           {node.definition && (
             <div>
               <h4 className="font-semibold text-sm text-gray-700 mb-2">Definition</h4>
@@ -207,21 +207,23 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
           )}
         </TabsContent>
 
-        <TabsContent value="technical" className="space-y-4 mt-4">
+        <TabsContent value="technical" className="space-y-4 mt-4 px-4 pb-4 break-words">
           {node.keyDetails && node.keyDetails.length > 0 ? (
             <div>
               <h4 className="font-semibold text-sm text-gray-700 mb-2">Key Details</h4>
-              <ul className="list-disc list-inside space-y-1">
+              <ul className="list-disc pl-5 space-y-1">
                 {node.keyDetails.map((detail, i) => (
-                  <li key={i} className="text-sm text-gray-600">{detail}</li>
+                  <li key={i} className="text-sm text-gray-600 break-words">{detail}</li>
                 ))}
               </ul>
             </div>
           ) : null}
           {node.sqlConnection && (
-            <div className="bg-purple-50 p-3 rounded-lg">
+            <div className="bg-purple-50 p-3 rounded-lg overflow-hidden">
               <h4 className="font-semibold text-sm text-purple-700 mb-1">SQL Connection</h4>
-              <pre className="text-xs text-purple-600 whitespace-pre-wrap font-mono">{node.sqlConnection}</pre>
+              <div className="overflow-x-auto">
+                <pre className="text-xs text-purple-600 whitespace-pre font-mono min-w-0">{node.sqlConnection}</pre>
+              </div>
             </div>
           )}
           {node.tools && node.tools.length > 0 && (
@@ -246,15 +248,15 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
           )}
         </TabsContent>
 
-        <TabsContent value="troubleshooting" className="space-y-4 mt-4">
+        <TabsContent value="troubleshooting" className="space-y-4 mt-4 px-4 pb-4 break-words">
           {node.troubleshooting ? (
             <>
               {node.troubleshooting.symptoms && node.troubleshooting.symptoms.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-sm text-gray-700 mb-2">Symptoms</h4>
-                  <ul className="list-disc list-inside space-y-1">
+                  <ul className="list-disc pl-5 space-y-1">
                     {node.troubleshooting.symptoms.map((s, i) => (
-                      <li key={i} className="text-sm text-gray-600">{s}</li>
+                      <li key={i} className="text-sm text-gray-600 break-words">{s}</li>
                     ))}
                   </ul>
                 </div>
@@ -262,9 +264,9 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
               {node.troubleshooting.diagnosticQuestions && node.troubleshooting.diagnosticQuestions.length > 0 && (
                 <div>
                   <h4 className="font-semibold text-sm text-gray-700 mb-2">Diagnostic Questions</h4>
-                  <ol className="list-decimal list-inside space-y-1">
+                  <ol className="list-decimal pl-5 space-y-1">
                     {node.troubleshooting.diagnosticQuestions.map((q, i) => (
-                      <li key={i} className="text-sm text-gray-600">{q}</li>
+                      <li key={i} className="text-sm text-gray-600 break-words">{q}</li>
                     ))}
                   </ol>
                 </div>
@@ -305,7 +307,7 @@ function NodeDetailContent({ node }: { node: LifecycleNode }) {
           )}
         </TabsContent>
 
-        <TabsContent value="interview" className="space-y-4 mt-4">
+        <TabsContent value="interview" className="space-y-4 mt-4 px-4 pb-4 break-words">
           <InterviewQuestionsTab node={node} />
         </TabsContent>
       </ScrollArea>

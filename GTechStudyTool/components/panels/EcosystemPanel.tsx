@@ -11,8 +11,8 @@ export function EcosystemPanel() {
   const products = data.crossCutting?.googleEcosystem || [];
 
   return (
-    <ScrollArea className="h-[calc(100vh-150px)]">
-      <div className="space-y-4 p-4">
+    <ScrollArea className="flex-1 min-h-0">
+      <div className="space-y-4 p-4 break-words">
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-500 mb-1">Google Ecosystem</h3>
           <p className="text-xs text-gray-400">Products that integrate with Google Ads</p>
@@ -56,9 +56,9 @@ export function EcosystemPanel() {
               {product.commonTscIssues && product.commonTscIssues.length > 0 && (
                 <div className="bg-red-50 p-2 rounded">
                   <p className="text-xs font-medium text-red-700 mb-1">Common TSC Issues</p>
-                  <ul className="text-xs text-red-600 list-disc list-inside space-y-0.5">
+                  <ul className="text-xs text-red-600 list-disc pl-4 space-y-0.5">
                     {product.commonTscIssues.slice(0, 5).map((issue, j) => (
-                      <li key={j}>{issue}</li>
+                      <li key={j} className="break-words">{issue}</li>
                     ))}
                   </ul>
                 </div>
